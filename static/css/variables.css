@@ -1,0 +1,29 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #080c14;
+  --surface: #0d1320;
+  --surface2: #111827;
+  --border: #1a2640;
+  --border2: #223050;
+  --accent: #00d4ff;
+  --accent2: #ff5c1a;
+  --accent3: #7c3aed;
+  --pass: #10b981;
+  --fail: #ef4444;
+  --warn: #f59e0b;
+  --crit: #dc2626;
+  --text: #d4e4f4;
+  --muted: #3d5470;
+  --muted2: #5a7a9a;
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-body: 'Barlow', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  color-scheme: dark light;
+}

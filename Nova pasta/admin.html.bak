@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Admin — CIS Analyzer v4</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ──────────────────────────────────────────────── */
+:root {
+  --bg:       #070b16;
+  --bg2:      #0c1120;
+  --surface:  rgba(255,255,255,0.04);
+  --surface2: rgba(255,255,255,0.02);
+  --surface3: rgba(255,255,255,0.06);
+  --border:   rgba(255,255,255,0.08);
+  --border2:  rgba(255,255,255,0.12);
+  --border3:  rgba(255,255,255,0.05);
+  --accent:   #6080ff;
+  --accent2:  #ff6b35;
+  --grad:     linear-gradient(135deg,#5b7fff,#9b4dff);
+  --pass:     #34d399;
+  --fail:     #f87171;
+  --warn:     #fbbf24;
+  --crit:     #ef4444;
+  --text:     #dde6f4;
+  --text2:    #7a96bf;
+  --muted:    #3a506e;
+  --muted2:   #5470a0;
+  --shadow:   rgba(0,0,0,0.5);
+  --blue-glow:rgba(91,127,255,0.12);
+  --sb-bg:    #0a0f1e;
+  --sb-w:     220px;
+}
+[data-theme="light"] {
+  --bg:       #f0f4fc;
+  --bg2:      #e8edf8;
+  --surface:  rgba(255,255,255,0.9);
+  --surface2: rgba(255,255,255,0.6);
+  --surface3: rgba(255,255,255,0.95);
+  --border:   rgba(100,130,200,0.15);
+  --border2:  rgba(100,130,200,0.25);
+  --border3:  rgba(100,130,200,0.08);
+  --accent:   #4060e0;
+  --accent2:  #e05500;
+  --grad:     linear-gradient(135deg,#4060e0,#7840d0);
+  --pass:     #059669;
+  --fail:     #dc2626;
+  --warn:     #d97706;
+  --crit:     #b91c1c;
+  --text:     #0f1929;
+  --text2:    #3d5470;
+  --muted:    #94a3b8;
+  --muted2:   #64748b;
+  --shadow:   rgba(0,0,0,0.10);
+  --blue-glow:rgba(64,96,224,0.06);
+  --sb-bg:    #1a1f30;
+}
+
+/* ── RESET ───────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Inter',sans-serif;min-height:100vh;
+}
+[data-theme="dark"] body{
+  background-image:radial-gradient(ellipse 60% 40% at 20% 0%,rgba(91,127,255,0.08),transparent 60%);
+}
+
+/* ── LOGIN ───────────────────────────────────────────────── */
+.login-screen{
+  display:none;position:fixed;inset:0;
+  background:var(--bg);z-index:500;
+  align-items:center;justify-content:center;
+}
+[data-theme="dark"] .login-screen{
+  background:linear-gradient(135deg,#060912 0%,#0a0f20 100%);
+}
+.login-screen.show{display:flex}
+.login-glow{
+  position:fixed;top:-200px;left:50%;transform:translateX(-50%);
+  width:600px;height:400px;
+  background:radial-gradient(ellipse,rgba(91,127,255,0.12) 0%,transparent 70%);
+  pointer-events:none;
+}
+.login-box{
+  background:var(--surface);
+  border:1px solid var(--border2);border-radius:20px;
+  padding:40px;width:100%;max-width:380px;
+  box-shadow:0 24px 80px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.06);
+  text-align:center;position:relative;
+  backdrop-filter:blur(20px);
+}
+[data-theme="dark"] .login-box::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;border-radius:20px;
+  background:var(--grad);opacity:0.5;
+}
+.login-logo{
+  width:56px;height:56px;border-radius:14px;
+  background:var(--grad);
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;margin:0 auto 16px;
+  box-shadow:0 8px 24px rgba(91,127,255,0.35);
+}
+.login-title{font-size:1.3rem;font-weight:700;margin-bottom:4px;color:var(--text)}
+.login-sub{
+  font-family:'IBM Plex Mono',monospace;font-size:.6rem;
+  color:var(--muted2);letter-spacing:2px;margin-bottom:28px;
+}
+.login-input{
+  width:100%;background:var(--surface2);
+  border:1px solid var(--border);color:var(--text);
+  padding:12px 16px;border-radius:10px;
+  font-family:'Inter',sans-serif;font-size:.95rem;
+  outline:none;text-align:center;margin-bottom:14px;transition:all .2s;
+}
+.login-input:focus{
+  border-color:rgba(91,127,255,0.5);
+  box-shadow:0 0 0 3px rgba(91,127,255,0.1);
+  background:rgba(91,127,255,0.04);
+}
+.login-input::placeholder{color:var(--muted)}
+.login-btn{
+  width:100%;padding:13px;
+  background:var(--grad);border:none;border-radius:10px;
+  color:#fff;font-family:'Inter',sans-serif;font-weight:700;
+  font-size:.9rem;letter-spacing:1px;cursor:pointer;
+  transition:all .2s;
+  box-shadow:0 4px 16px rgba(91,127,255,0.35);
+}
+.login-btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(91,127,255,0.45)}
+.login-err{color:var(--fail);font-size:.75rem;margin-top:10px;font-family:'IBM Plex Mono',monospace;min-height:1.1rem}
+
+/* ── LAYOUT ──────────────────────────────────────────────── */
+.layout{display:grid;grid-template-columns:var(--sb-w) 1fr;min-height:100vh}
+@media(max-width:700px){.layout{grid-template-columns:1fr}}
+
+/* ── SIDEBAR ─────────────────────────────────────────────── */
+.sidebar{
+  background:var(--sb-bg);
+  border-right:1px solid var(--border);
+  padding:20px 0;display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+}
+.sb-logo{
+  display:flex;align-items:center;gap:10px;
+  padding:0 18px 20px;border-bottom:1px solid var(--border);margin-bottom:12px;
+}
+.sb-logo-icon{
+  width:32px;height:32px;border-radius:8px;
+  background:var(--grad);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;flex-shrink:0;
+}
+.sb-logo-text{display:flex;flex-direction:column;gap:1px}
+.sb-logo-name{font-size:.8rem;font-weight:700;color:var(--text)}
+.sb-logo-sub{
+  font-family:'IBM Plex Mono',monospace;font-size:.52rem;
+  color:var(--muted2);letter-spacing:1px;
+}
+.sb-section{
+  font-family:'IBM Plex Mono',monospace;font-size:.5rem;
+  letter-spacing:2.5px;color:var(--muted);text-transform:uppercase;
+  padding:8px 18px 6px;margin-top:6px;
+}
+.sb-nav{flex:1;padding:0 10px}
+.sb-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 10px;border-radius:9px;cursor:pointer;
+  transition:all .14s;font-size:.83rem;font-weight:500;
+  margin-bottom:2px;border:none;background:transparent;
+  color:var(--text2);width:100%;text-align:left;
+}
+.sb-item:hover{background:var(--surface3);color:var(--text)}
+.sb-item.active{
+  background:rgba(91,127,255,0.12);color:var(--accent);
+  border:1px solid rgba(91,127,255,0.15);
+}
+.sb-item .icon{
+  width:20px;height:20px;display:flex;align-items:center;justify-content:center;
+  font-size:.85rem;flex-shrink:0;
+  background:var(--surface3);border-radius:5px;border:1px solid var(--border);
+}
+.sb-item.active .icon{
+  background:rgba(91,127,255,0.15);border-color:rgba(91,127,255,0.25);
+}
+.sb-footer{padding:14px 10px;border-top:1px solid var(--border)}
+.sb-link{
+  font-family:'IBM Plex Mono',monospace;font-size:.58rem;color:var(--muted2);
+  text-decoration:none;display:flex;align-items:center;gap:7px;
+  padding:7px 10px;border-radius:8px;margin-bottom:4px;transition:all .14s;
+}
+.sb-link:hover{color:var(--accent);background:var(--blue-glow)}
+.sb-btn{
+  width:100%;padding:8px;border-radius:8px;
+  border:1px solid var(--border2);background:transparent;
+  color:var(--text2);cursor:pointer;
+  font-family:'IBM Plex Mono',monospace;font-size:.58rem;letter-spacing:1px;
+  text-align:center;transition:all .14s;margin-top:5px;
+}
+.sb-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--blue-glow)}
+.sb-btn.danger{border-color:rgba(248,113,113,.25);color:var(--fail)}
+.sb-btn.danger:hover{background:rgba(248,113,113,.06)}
+
+/* ── MAIN ────────────────────────────────────────────────── */
+.main{padding:28px;overflow:auto}
+.page{display:none}.page.active{display:block}
+.page-header{margin-bottom:26px}
+.page-title{font-size:1.35rem;font-weight:700;margin-bottom:4px;color:var(--text)}
+.page-sub{font-size:.8rem;color:var(--muted2)}
+
+/* ── STATS GRID ──────────────────────────────────────────── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+@media(max-width:860px){.stats-grid{grid-template-columns:1fr 1fr}}
+.stat-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:13px;
+  padding:18px 20px;backdrop-filter:blur(8px);
+  box-shadow:0 2px 10px var(--shadow);
+  position:relative;overflow:hidden;
+}
+[data-theme="dark"] .stat-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:var(--grad);opacity:0.25;
+}
+.stat-card .sv{font-size:2rem;font-weight:800;line-height:1;color:var(--accent)}
+.stat-card .sl{
+  font-family:'IBM Plex Mono',monospace;font-size:.55rem;
+  color:var(--muted2);letter-spacing:2px;text-transform:uppercase;margin-top:5px;
+}
+
+/* ── TABLE CARD ──────────────────────────────────────────── */
+.tcard{
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  overflow:hidden;margin-bottom:18px;
+  backdrop-filter:blur(8px);
+  box-shadow:0 2px 10px var(--shadow);
+}
+.tcard-head{
+  padding:14px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  background:var(--surface2);
+}
+.tcard-head h3{
+  font-family:'IBM Plex Mono',monospace;font-size:.55rem;
+  letter-spacing:3px;text-transform:uppercase;color:var(--accent);flex:1;
+}
+table{width:100%;border-collapse:collapse;font-size:.8rem}
+th{
+  padding:10px 14px;text-align:left;
+  font-family:'IBM Plex Mono',monospace;font-size:.54rem;
+  letter-spacing:1.5px;text-transform:uppercase;color:var(--muted2);
+  border-bottom:1px solid var(--border);background:var(--surface2);
+}
+td{
+  padding:10px 14px;border-bottom:1px solid var(--border3);
+  color:var(--text2);vertical-align:middle;
+}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(91,127,255,0.025)}
+
+/* ── BADGES ──────────────────────────────────────────────── */
+.badge{
+  font-family:'IBM Plex Mono',monospace;font-size:.53rem;
+  padding:2px 8px;border-radius:5px;font-weight:600;letter-spacing:1px;
+  display:inline-block;
+}
+.badge.Critical{background:rgba(239,68,68,.1);color:var(--crit)}
+.badge.High{background:rgba(248,113,113,.08);color:var(--fail)}
+.badge.Medium{background:rgba(251,191,36,.08);color:var(--warn)}
+.badge.Low{background:rgba(165,180,252,.08);color:#a5b4fc}
+.badge.active{background:rgba(52,211,153,.08);color:var(--pass)}
+.badge.inactive{background:rgba(248,113,113,.08);color:var(--fail)}
+.badge.BAIXO{background:rgba(52,211,153,.08);color:var(--pass)}
+.badge.MÉDIO{background:rgba(251,191,36,.08);color:var(--warn)}
+.badge.ALTO{background:rgba(248,113,113,.08);color:var(--fail)}
+.badge.CRÍTICO{background:rgba(239,68,68,.1);color:var(--crit)}
+
+/* ── BUTTONS ─────────────────────────────────────────────── */
+.btn{
+  padding:7px 14px;border-radius:8px;
+  font-family:'Inter',sans-serif;font-weight:600;font-size:.78rem;
+  letter-spacing:0.3px;cursor:pointer;transition:all .14s;border:1px solid;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.btn-primary{
+  background:var(--grad);border-color:transparent;color:#fff;
+  box-shadow:0 2px 10px rgba(91,127,255,0.3);
+}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px)}
+.btn-ghost{
+  background:transparent;border-color:var(--border2);color:var(--text2);
+}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent);background:var(--blue-glow)}
+.btn-danger{
+  background:transparent;border-color:rgba(248,113,113,.25);color:var(--fail);
+}
+.btn-danger:hover{background:rgba(248,113,113,.06)}
+.btn-sm{padding:4px 10px;font-size:.7rem}
+.btn-icon{width:30px;height:30px;padding:0;display:inline-flex;align-items:center;justify-content:center}
+
+/* ── FORM ────────────────────────────────────────────────── */
+.form-row{display:grid;gap:13px;margin-bottom:13px}
+.form-row.c2{grid-template-columns:1fr 1fr}.form-row.c3{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:580px){.form-row.c2,.form-row.c3{grid-template-columns:1fr}}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-label{
+  font-size:.6rem;font-family:'IBM Plex Mono',monospace;
+  color:var(--muted2);letter-spacing:2px;text-transform:uppercase;
+}
+.form-control{
+  background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);padding:9px 12px;border-radius:9px;
+  font-family:'Inter',sans-serif;font-size:.82rem;
+  outline:none;transition:all .2s;width:100%;
+}
+.form-control:focus{
+  border-color:rgba(91,127,255,0.5);
+  box-shadow:0 0 0 3px rgba(91,127,255,0.08);
+  background:rgba(91,127,255,0.03);
+}
+.form-control::placeholder{color:var(--muted)}
+select.form-control{cursor:pointer}
+textarea.form-control{resize:vertical;min-height:64px;font-family:'IBM Plex Mono',monospace;font-size:.73rem}
+
+/* ── WEIGHTS ─────────────────────────────────────────────── */
+.weights-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+@media(max-width:680px){.weights-grid{grid-template-columns:1fr 1fr}}
+.weight-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:18px;text-align:center;
+}
+.weight-card label{
+  font-family:'IBM Plex Mono',monospace;font-size:.58rem;
+  letter-spacing:2px;text-transform:uppercase;display:block;margin-bottom:10px;
+}
+.weight-card.Critical label{color:var(--crit)}
+.weight-card.High label{color:var(--fail)}
+.weight-card.Medium label{color:var(--warn)}
+.weight-card.Low label{color:#a5b4fc}
+.weight-input{
+  width:80px;background:var(--surface2);border:1px solid var(--border2);
+  color:var(--text);padding:8px;border-radius:8px;
+  font-family:'IBM Plex Mono',monospace;font-size:1.1rem;font-weight:700;
+  text-align:center;outline:none;
+}
+.weight-input:focus{border-color:var(--accent)}
+
+/* ── MODAL ───────────────────────────────────────────────── */
+.modal-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(4px);
+  z-index:1000;align-items:center;justify-content:center;padding:18px;
+}
+.modal-overlay.show{display:flex}
+.modal{
+  background:var(--bg2);border:1px solid var(--border2);border-radius:16px;
+  padding:28px;max-width:680px;width:100%;max-height:90vh;overflow-y:auto;
+  box-shadow:0 24px 80px rgba(0,0,0,0.6);
+  position:relative;
+}
+[data-theme="dark"] .modal::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;border-radius:16px;
+  background:var(--grad);opacity:0.4;
+}
+.modal-title{
+  font-size:1.05rem;font-weight:700;margin-bottom:20px;
+  display:flex;align-items:center;gap:10px;color:var(--text);
+}
+.modal-actions{
+  display:flex;gap:8px;justify-content:flex-end;
+  margin-top:20px;padding-top:16px;border-top:1px solid var(--border);
+}
+
+/* ── TOGGLE ──────────────────────────────────────────────── */
+.toggle{position:relative;display:inline-block;width:36px;height:20px}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{
+  position:absolute;cursor:pointer;inset:0;
+  background:var(--border2);border-radius:20px;transition:.2s;
+}
+.toggle-slider:before{
+  position:absolute;content:'';height:14px;width:14px;
+  left:3px;bottom:3px;background:white;border-radius:50%;transition:.2s;
+}
+input:checked+.toggle-slider{background:var(--pass)}
+input:checked+.toggle-slider:before{transform:translateX(16px)}
+
+/* ── VER TABS ────────────────────────────────────────────── */
+.ver-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.ver-tab{
+  padding:5px 14px;border-radius:7px;
+  border:1px solid var(--border2);background:transparent;
+  color:var(--text2);font-family:'IBM Plex Mono',monospace;font-size:.62rem;
+  cursor:pointer;transition:all .14s;letter-spacing:0.5px;
+}
+.ver-tab.active{border-color:rgba(91,127,255,0.4);color:var(--accent);background:rgba(91,127,255,0.08)}
+
+/* ── SEARCH ──────────────────────────────────────────────── */
+.search-input{
+  background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);padding:7px 13px;border-radius:8px;
+  font-family:'Inter',sans-serif;font-size:.82rem;
+  outline:none;width:200px;transition:all .2s;
+}
+.search-input:focus{border-color:rgba(91,127,255,0.4);box-shadow:0 0 0 3px rgba(91,127,255,0.08)}
+.search-input::placeholder{color:var(--muted)}
+
+/* ── IMPORT ──────────────────────────────────────────────── */
+.import-zone{
+  border:1px dashed var(--border2);border-radius:10px;
+  padding:22px;text-align:center;cursor:pointer;
+  position:relative;transition:all .2s;color:var(--muted2);font-size:.82rem;
+}
+.import-zone:hover{border-color:var(--accent);background:var(--blue-glow);color:var(--accent)}
+.import-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.import-result{
+  margin-top:14px;padding:11px 14px;border-radius:9px;
+  font-family:'IBM Plex Mono',monospace;font-size:.7rem;display:none;
+}
+.import-result.show{display:block}
+.import-result.ok{background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.2);color:var(--pass)}
+.import-result.err{background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.2);color:var(--fail)}
+
+/* ── TOAST ───────────────────────────────────────────────── */
+.toast{
+  position:fixed;bottom:24px;right:24px;
+  background:var(--bg2);border:1px solid var(--border2);border-radius:12px;
+  padding:13px 20px;font-family:'IBM Plex Mono',monospace;font-size:.7rem;
+  box-shadow:0 12px 40px rgba(0,0,0,0.4);z-index:2000;
+  transform:translateX(120%);transition:transform .3s cubic-bezier(.4,0,.2,1);
+}
+.toast.show{transform:translateX(0)}
+.toast.ok{border-color:rgba(52,211,153,.35);color:var(--pass)}
+.toast.err{border-color:rgba(248,113,113,.35);color:var(--fail)}
+
+/* ── SPINNER ─────────────────────────────────────────────── */
+.spinner{
+  width:40px;height:40px;border-radius:50%;
+  border:2px solid var(--border);
+  border-top-color:var(--accent);border-right-color:#9b4dff;
+  animation:spin .8s linear infinite;margin:0 auto;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── VALIDATION ──────────────────────────────────────────── */
+.val-row{padding:0;border-bottom:1px solid var(--border3);cursor:pointer;transition:background .12s}
+.val-row:last-child{border-bottom:none}
+.val-row:hover{background:rgba(91,127,255,0.02)}
+.val-row.expanded .val-detail{display:block}
+.val-row.hidden{display:none}
+.val-header{
+  display:grid;grid-template-columns:48px 1fr 90px 80px 80px 44px;
+  gap:10px;align-items:center;padding:11px 18px;
+}
+.val-detail{
+  display:none;padding:0 18px 16px;
+  border-top:1px solid var(--border3);background:var(--surface2);
+}
+.val-tests{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;margin-top:10px}
+.val-test{
+  padding:9px 12px;border-radius:8px;font-family:'IBM Plex Mono',monospace;
+  font-size:.7rem;border:1px solid;
+}
+.val-test.PASS{background:rgba(52,211,153,.05);border-color:rgba(52,211,153,.2);color:var(--pass)}
+.val-test.FAIL{background:rgba(248,113,113,.05);border-color:rgba(248,113,113,.2);color:var(--fail)}
+.val-test.WARN{background:rgba(251,191,36,.05);border-color:rgba(251,191,36,.2);color:var(--warn)}
+.val-test.SKIP{background:transparent;border-color:var(--border);color:var(--muted2)}
+.val-test .t-name{font-weight:600;margin-bottom:2px}
+.val-test .t-msg{opacity:.85}
+.val-status{
+  font-family:'IBM Plex Mono',monospace;font-size:.62rem;
+  padding:3px 9px;border-radius:5px;font-weight:600;letter-spacing:1px;text-align:center;
+}
+.val-status.OK{background:rgba(52,211,153,.08);color:var(--pass);border:1px solid rgba(52,211,153,.2)}
+.val-status.WARN{background:rgba(251,191,36,.08);color:var(--warn);border:1px solid rgba(251,191,36,.2)}
+.val-status.ERROR{background:rgba(248,113,113,.08);color:var(--fail);border:1px solid rgba(248,113,113,.2)}
+.val-issue{
+  background:rgba(248,113,113,.05);border:1px solid rgba(248,113,113,.15);
+  border-radius:7px;padding:8px 11px;font-size:.75rem;color:var(--fail);margin-top:8px;
+}
+.val-pattern-box{
+  background:var(--surface2);border:1px solid var(--border);border-radius:7px;
+  padding:8px 11px;font-family:'IBM Plex Mono',monospace;font-size:.68rem;
+  color:var(--accent2);word-break:break-all;margin-top:6px;
+}
+.health-bar-wrap{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:10px}
+.health-bar{height:100%;border-radius:3px;transition:width .6s}
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ─────────────────────────────────────────────── -->
+<div class="login-screen show" id="loginScreen">
+  <div class="login-glow"></div>
+  <div class="login-box">
+    <div class="login-logo">⚙</div>
+    <div class="login-title">Admin Panel</div>
+    <div class="login-sub">CIS ANALYZER v4</div>
+    <input class="login-input" type="password" id="loginPw" placeholder="Senha de acesso" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">Entrar</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- ── LAYOUT ─────────────────────────────────────────────── -->
+<div class="layout" id="adminLayout" style="display:none">
+
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">⚙</div>
+    <div class="sb-logo-text">
+      <div class="sb-logo-name">Admin Panel</div>
+      <div class="sb-logo-sub">CIS Analyzer v4</div>
+    </div>
+  </div>
+  <nav class="sb-nav">
+    <button class="sb-item active" onclick="showPage('dashboard',this)"><span class="icon">📊</span>Dashboard</button>
+    <button class="sb-item" onclick="showPage('endpoints',this)"><span class="icon">🌐</span>Endpoints API</button>
+    <button class="sb-item" onclick="showPage('checks',this)"><span class="icon">✅</span>Controles CIS</button>
+    <button class="sb-item" onclick="showPage('validation',this)"><span class="icon">🔬</span>Validação</button>
+    <button class="sb-item" onclick="showPage('import',this)"><span class="icon">📥</span>Importar Regras</button>
+    <button class="sb-item" onclick="showPage('weights',this)"><span class="icon">⚖️</span>Pesos Severidade</button>
+    <button class="sb-item" onclick="showPage('security',this)"><span class="icon">🔑</span>Segurança</button>
+    <button class="sb-item" onclick="showPage('history',this)"><span class="icon">📋</span>Histórico</button>
+  </nav>
+  <div class="sb-footer">
+    <a href="/" class="sb-link">← Voltar ao Analisador</a>
+    <button class="sb-btn" onclick="toggleTheme()" id="themeBtn">☀️ Tema Claro</button>
+    <button class="sb-btn danger" onclick="doLogout()" style="margin-top:6px">⎋ Sair</button>
+  </div>
+</aside>
+
+<main class="main">
+
+  <!-- DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div class="page-header">
+      <div class="page-title">Dashboard</div>
+      <div class="page-sub">Sistema API-only · SonicWall · FortiGate · pfSense · Sem análise por arquivo</div>
+    </div>
+    <div style="background:rgba(91,127,255,0.06);border:1px solid rgba(91,127,255,0.15);border-radius:10px;padding:13px 16px;margin-bottom:18px;display:flex;align-items:center;gap:10px">
+      <span style="font-size:1.1rem">🌐</span>
+      <div>
+        <div style="font-size:.8rem;font-weight:600;color:var(--text)">Modo API-only habilitado</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.6rem;color:var(--muted2);margin-top:2px">Todas as análises são realizadas via conexão direta com os dispositivos. Nenhum arquivo de backup é necessário.</div>
+      </div>
+    </div>
+    <div class="stats-grid" id="statsGrid"></div>
+    <div class="tcard">
+      <div class="tcard-head"><h3>Últimas Análises</h3></div>
+      <table><thead><tr><th>Empresa</th><th>Fabricante</th><th>Versão</th><th>Score</th><th>Risco</th><th>Data</th></tr></thead>
+      <tbody id="histDash"></tbody></table>
+    </div>
+  </div>
+
+  <!-- ENDPOINTS API -->
+  <div class="page" id="page-endpoints">
+    <div class="page-header">
+      <div class="page-title">Endpoints API</div>
+      <div class="page-sub">Referência dos endpoints usados por fabricante</div>
+    </div>
+    <div class="tcard" style="margin-bottom:14px">
+      <div class="tcard-head"><h3>🔥 SonicWall — SonicOS 7.x</h3></div>
+      <div style="padding:18px">
+        <p style="font-size:.8rem;color:var(--text2);margin-bottom:12px">Base: <code style="font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--accent)">https://&lt;host&gt;/api/sonicos/</code></p>
+        <table><thead><tr><th>Seção</th><th>Endpoint</th></tr></thead><tbody>
+          <tr><td>Device Info</td><td><code style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--accent2)">reporting/device/current</code></td></tr>
+          <tr><td>Management</td><td><code style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--accent2)">system/base</code></td></tr>
+          <tr><td>SNMP</td><td><code style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--accent2)">snmp/base</code></td></tr>
+          <tr><td>Gateway AV</td><td><code style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--accent2)">gateway-antivirus/base</code></td></tr>
+          <tr><td>IPS</td><td><code style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--accent2)">intrusion-prevention/base</code></td></tr>
+          <tr><td>Botnet</td><td><code style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--accent2)">botnet/base</code></td></tr>
+          <tr><td>Geo-IP</td><td><code style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--accent2)">geo-ip/base</code></td></tr>
+          <tr><td>Content Filter</td><td><code style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--accent2)">content-filter/cfs/base</code></td></tr>
+          <tr><td>Anti-Spyware</td><td><code style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--accent2)">anti-spyware/base</code></td></tr>
+          <tr><td>Syslog</td><td><code style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--accent2)">log/syslog/base</code></td></tr>
+          <tr><td>SYN Flood</td><td><code style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--accent2)">firewall/flood-protection/syn/base</code></td></tr>
+          <tr><td>VPN IKE</td><td><code style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--accent2)">vpn/ike/phase1-proposals</code></td></tr>
+          <tr><td>DPI-SSL</td><td><code style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--accent2)">dpi-ssl/client/base</code></td></tr>
+          <tr><td>Password Policy</td><td><code style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--accent2)">user/local/password-policy/base</code></td></tr>
+          <tr><td>Access Rules</td><td><code style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--accent2)">access-rule/ipv4</code></td></tr>
+        </tbody></table>
+        <p style="font-size:.72rem;color:var(--muted2);margin-top:10px">Autenticação: Basic Auth → <code style="font-family:'IBM Plex Mono',monospace;color:var(--accent)">POST /api/sonicos/auth</code><br>Habilitar: Manage &gt; API &gt; Enable SonicOS API = on</p>
+      </div>
+    </div>
+    <div class="tcard" style="margin-bottom:14px">
+      <div class="tcard-head"><h3>🟠 FortiGate — FortiOS 7.x</h3></div>
+      <div style="padding:18px">
+        <p style="font-size:.8rem;color:var(--text2);margin-bottom:12px">Base: <code style="font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--accent)">https://&lt;host&gt;/api/v2/</code></p>
+        <p style="font-size:.75rem;color:var(--text2);line-height:1.7">Endpoints usados: <code style="font-family:'IBM Plex Mono',monospace;color:var(--accent2)">monitor/system/status</code>, <code style="font-family:'IBM Plex Mono',monospace;color:var(--accent2)">cmdb/system/global</code>, <code style="font-family:'IBM Plex Mono',monospace;color:var(--accent2)">cmdb/system/interface</code>, <code style="font-family:'IBM Plex Mono',monospace;color:var(--accent2)">cmdb/firewall/policy</code>, <code style="font-family:'IBM Plex Mono',monospace;color:var(--accent2)">cmdb/antivirus/profile</code>, <code style="font-family:'IBM Plex Mono',monospace;color:var(--accent2)">cmdb/ips/sensor</code>, <code style="font-family:'IBM Plex Mono',monospace;color:var(--accent2)">cmdb/vpn.ipsec/phase1-interface</code>, <code style="font-family:'IBM Plex Mono',monospace;color:var(--accent2)">cmdb/log/syslogd/setting</code> e outros.</p>
+        <p style="font-size:.72rem;color:var(--muted2);margin-top:10px">Autenticação: API Key (Bearer token) ou session cookie via <code style="font-family:'IBM Plex Mono',monospace;color:var(--accent)">/logincheck</code><br>Criar API Key: System &gt; Administrators &gt; REST API Admin</p>
+      </div>
+    </div>
+    <div class="tcard">
+      <div class="tcard-head"><h3>🔵 pfSense — API Plugin</h3></div>
+      <div style="padding:18px">
+        <p style="font-size:.8rem;color:var(--text2);margin-bottom:12px">Base: <code style="font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--accent)">https://&lt;host&gt;/api/v1/</code></p>
+        <p style="font-size:.75rem;color:var(--text2);line-height:1.7">Plugin requerido: <b>pfSense-pkg-API</b> · Endpoints usados: <code style="font-family:'IBM Plex Mono',monospace;color:var(--accent2)">system/version</code>, <code style="font-family:'IBM Plex Mono',monospace;color:var(--accent2)">system/hostname</code>, <code style="font-family:'IBM Plex Mono',monospace;color:var(--accent2)">firewall/rule</code>, <code style="font-family:'IBM Plex Mono',monospace;color:var(--accent2)">firewall/nat/port_forward</code>, <code style="font-family:'IBM Plex Mono',monospace;color:var(--accent2)">services/syslogd</code>, <code style="font-family:'IBM Plex Mono',monospace;color:var(--accent2)">services/snmpd</code> e outros.</p>
+        <p style="font-size:.72rem;color:var(--muted2);margin-top:10px">Autenticação: Basic Auth ou API Key (Bearer)<br>Instalar: System &gt; Package Manager &gt; pfSense-pkg-API</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHECKS -->
+  <div class="page" id="page-checks">
+    <div class="page-header">
+      <div class="page-title">Controles CIS</div>
+      <div class="page-sub">Gerencie controles por versão</div>
+    </div>
+    <div class="tcard">
+      <div class="tcard-head">
+        <h3>Controles</h3>
+        <input class="search-input" id="checkSearch" placeholder="Buscar..." oninput="filterChecks()">
+        <button class="btn btn-primary btn-sm" onclick="openNewCheckModal()">+ Novo</button>
+      </div>
+      <div style="padding:14px 16px 0;border-bottom:1px solid var(--border)"><div class="ver-tabs" id="verTabs"></div></div>
+      <table><thead><tr><th>ID</th><th>Título</th><th>Categoria</th><th>Sev.</th><th>Padrão</th><th>Ativo</th><th>Ações</th></tr></thead>
+      <tbody id="checksBody"></tbody></table>
+    </div>
+  </div>
+
+  <!-- VALIDATION -->
+  <div class="page" id="page-validation">
+    <div class="page-header">
+      <div class="page-title">Validação de Controles</div>
+      <div class="page-sub">Verifica automaticamente se cada regra CIS está correta — regex válida, grupos de captura, XPath, parâmetros</div>
+    </div>
+    <div class="tcard" style="margin-bottom:16px">
+      <div class="tcard-head">
+        <h3>Selecionar versão para validar</h3>
+        <select class="form-control" id="valVersionSel" style="max-width:320px"></select>
+        <button class="btn btn-primary" onclick="runValidation()" id="valRunBtn">▶ Executar Validação</button>
+      </div>
+    </div>
+    <div id="valSummary" style="display:none">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px" id="valCards"></div>
+      <div class="tcard" id="valResultCard">
+        <div class="tcard-head">
+          <h3>Resultados por controle</h3>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <select class="form-control" id="valFilter" onchange="filterValResults()" style="max-width:180px">
+              <option value="all">Todos os status</option>
+              <option value="ERROR">❌ Erro</option>
+              <option value="WARN">⚠️ Aviso</option>
+              <option value="OK">✅ OK</option>
+            </select>
+            <input class="search-input" id="valSearch" placeholder="Buscar controle..." oninput="filterValResults()" style="width:180px">
+            <button class="btn btn-ghost btn-sm" onclick="exportValReport()">⬇ Exportar</button>
+          </div>
+        </div>
+        <div id="valResultCount" style="padding:7px 18px;font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--muted2);border-bottom:1px solid var(--border)"></div>
+        <div id="valResultsBody"></div>
+      </div>
+    </div>
+    <div id="valLoading" style="display:none;text-align:center;padding:50px">
+      <div class="spinner" style="margin:0 auto 14px"></div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--muted2);letter-spacing:2px" id="valLoadingMsg">VALIDANDO CONTROLES...</div>
+    </div>
+  </div>
+
+  <!-- IMPORT -->
+  <div class="page" id="page-import">
+    <div class="page-header">
+      <div class="page-title">Importar Regras</div>
+      <div class="page-sub">Adicione controles via PDF do CIS ou arquivo TXT customizado</div>
+    </div>
+    <div class="tcard" style="margin-bottom:16px">
+      <div class="tcard-head"><h3>Importar via TXT</h3></div>
+      <div style="padding:20px">
+        <div class="form-row c2">
+          <div class="form-group"><label class="form-label">Versão de destino</label><select class="form-control" id="importTxtVer"></select></div>
+          <div class="form-group"><label class="form-label">Arquivo .txt</label>
+            <div class="import-zone"><input type="file" id="importTxtFile" accept=".txt"><span>📄 Selecionar arquivo .txt de regras</span></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="doImportTxt()">⬆ Importar TXT</button>
+          <button class="btn btn-ghost" onclick="downloadTemplate()">⬇ Baixar Template</button>
+          <small style="color:var(--muted2);font-size:.72rem">Use o template como base para criar suas regras customizadas.</small>
+        </div>
+        <div class="import-result" id="txtResult"></div>
+      </div>
+    </div>
+    <div class="tcard">
+      <div class="tcard-head"><h3>Importar via PDF (CIS Benchmark)</h3></div>
+      <div style="padding:20px">
+        <div class="form-row c2">
+          <div class="form-group"><label class="form-label">Versão de destino</label><select class="form-control" id="importPdfVer"></select></div>
+          <div class="form-group"><label class="form-label">PDF do CIS Benchmark</label>
+            <div class="import-zone"><input type="file" id="importPdfFile" accept=".pdf"><span>📕 Selecionar PDF do CIS Benchmark</span></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="doImportPdf()">⬆ Importar PDF</button>
+        <small style="color:var(--muted2);margin-left:10px;font-size:.72rem">Extrai automaticamente controles do PDF. Requer pdfplumber instalado.</small>
+        <div class="import-result" id="pdfResult"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WEIGHTS -->
+  <div class="page" id="page-weights">
+    <div class="page-header">
+      <div class="page-title">Pesos de Severidade</div>
+      <div class="page-sub">Ajuste o impacto de cada nível de severidade no score de risco</div>
+    </div>
+    <div class="tcard">
+      <div class="tcard-head"><h3>Configurar Pesos</h3></div>
+      <div style="padding:22px">
+        <p style="font-size:.82rem;color:var(--text2);margin-bottom:18px;line-height:1.6">O score é calculado com base no peso de cada severidade. Pesos maiores = maior impacto no score ao reprovar.</p>
+        <div class="weights-grid">
+          <div class="weight-card Critical"><label>Critical</label><input class="weight-input" id="wCritical" type="number" min="1" max="100" value="10"></div>
+          <div class="weight-card High"><label>High</label><input class="weight-input" id="wHigh" type="number" min="1" max="100" value="6"></div>
+          <div class="weight-card Medium"><label>Medium</label><input class="weight-input" id="wMedium" type="number" min="1" max="100" value="3"></div>
+          <div class="weight-card Low"><label>Low</label><input class="weight-input" id="wLow" type="number" min="1" max="100" value="1"></div>
+        </div>
+        <button class="btn btn-primary" onclick="saveWeights()">💾 Salvar Pesos</button>
+        <small style="color:var(--muted2);margin-left:10px;font-size:.72rem">As análises futuras usarão os novos pesos.</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECURITY -->
+  <div class="page" id="page-security">
+    <div class="page-header">
+      <div class="page-title">Segurança</div>
+      <div class="page-sub">Gerencie acesso ao painel admin</div>
+    </div>
+    <div class="tcard" style="max-width:480px">
+      <div class="tcard-head"><h3>Alterar Senha Admin</h3></div>
+      <div style="padding:22px">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Senha Atual</label><input class="form-control" type="password" id="pwCurrent" placeholder="••••••"></div>
+          <div class="form-group"><label class="form-label">Nova Senha</label><input class="form-control" type="password" id="pwNew" placeholder="Mínimo 6 caracteres"></div>
+          <div class="form-group"><label class="form-label">Confirmar Nova Senha</label><input class="form-control" type="password" id="pwConfirm" placeholder="Repita a nova senha"></div>
+        </div>
+        <button class="btn btn-primary" onclick="changePw()">🔑 Alterar Senha</button>
+        <div id="pwMsg" style="margin-top:12px;font-size:.8rem;font-family:'IBM Plex Mono',monospace"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="page" id="page-history">
+    <div class="page-header">
+      <div class="page-title">Histórico de Análises</div>
+      <div class="page-sub">Todas as análises realizadas</div>
+    </div>
+    <div class="tcard">
+      <div class="tcard-head"><h3>Análises</h3></div>
+      <table><thead><tr><th>Empresa</th><th>Fabricante</th><th>Versão</th><th>Score</th><th>Risco</th><th>Pass</th><th>Fail</th><th>Data</th></tr></thead>
+      <tbody id="histFull"></tbody></table>
+    </div>
+  </div>
+
+</main>
+</div><!-- /layout -->
+
+<!-- ── EDIT MODAL ─────────────────────────────────────────── -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-title">
+      <span>✏️</span>
+      <span id="modalTitle">Controle CIS</span>
+    </div>
+    <input type="hidden" id="editId"><input type="hidden" id="editVerId">
+    <div class="form-row c2">
+      <div class="form-group"><label class="form-label">ID (CID)</label><input class="form-control" id="eCid" placeholder="SW-1.1.1"></div>
+      <div class="form-group"><label class="form-label">Categoria</label>
+        <select class="form-control" id="eCat">
+          <option>Authentication</option><option>Network Security</option><option>Access Control</option>
+          <option>Logging</option><option>System Hardening</option><option>VPN</option>
+          <option>Firewall Rules</option><option>Management</option><option>Updates</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Título</label><input class="form-control" id="eTitle"></div>
+    </div>
+    <div class="form-row c2">
+      <div class="form-group"><label class="form-label">Severidade</label>
+        <select class="form-control" id="eSev">
+          <option>Critical</option><option>High</option><option>Medium</option><option>Low</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Tipo de Padrão</label>
+        <select class="form-control" id="ePType" onchange="updatePHelp()">
+          <option value="regex_present">regex_present</option><option value="regex_absent">regex_absent</option>
+          <option value="value_lte">value_lte</option><option value="value_gte">value_gte</option>
+          <option value="xml_present">xml_present</option><option value="xml_absent">xml_absent</option>
+          <option value="xml_value_eq">xml_value_eq</option><option value="xml_value_ne">xml_value_ne</option>
+          <option value="always_pass">always_pass</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row c2">
+      <div class="form-group">
+        <label class="form-label">Padrão <span id="pHelp" style="color:var(--muted2);font-size:.55rem;margin-left:6px;letter-spacing:0"></span></label>
+        <input class="form-control" id="ePattern" placeholder="Regex ou XPath">
+      </div>
+      <div class="form-group"><label class="form-label">Parâmetro</label><input class="form-control" id="eParam" placeholder="Valor de comparação"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Descrição</label><textarea class="form-control" id="eDesc"></textarea></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Recomendação</label><textarea class="form-control" id="eRec"></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveCheck()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOAST ──────────────────────────────────────────────── -->
+<div class="toast" id="toastEl"></div>
+
+<script>
+let allVendors=[], allChecks=[], currentVerId=null, editingId=null;
+
+// ── THEME ──────────────────────────────────────────────────
+(function(){
+  const t=localStorage.getItem('theme')||'dark';
+  document.documentElement.setAttribute('data-theme',t);
+  document.addEventListener('DOMContentLoaded',()=>{
+    const b=document.getElementById('themeBtn');if(b)b.textContent=t==='dark'?'☀️ Tema Claro':'🌙 Tema Escuro';
+  });
+})();
+function toggleTheme(){
+  const d=document.documentElement.getAttribute('data-theme')==='dark';
+  document.documentElement.setAttribute('data-theme',d?'light':'dark');
+  document.getElementById('themeBtn').textContent=d?'🌙 Tema Escuro':'☀️ Tema Claro';
+  localStorage.setItem('theme',d?'light':'dark');
+}
+
+// ── TOAST ──────────────────────────────────────────────────
+function toast(msg,type='ok'){
+  const t=document.getElementById('toastEl');
+  t.textContent=msg;t.className=`toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ── AUTH ───────────────────────────────────────────────────
+async function checkAuth(){
+  const r=await fetch('/api/admin/auth-check');const d=await r.json();
+  if(d.authenticated){showAdmin()}else{document.getElementById('loginScreen').classList.add('show')}
+}
+async function doLogin(){
+  const pw=document.getElementById('loginPw').value;
+  const r=await fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})});
+  const d=await r.json();
+  if(d.ok){document.getElementById('loginScreen').classList.remove('show');showAdmin()}
+  else{document.getElementById('loginErr').textContent=d.error||'Senha incorreta'}
+}
+async function doLogout(){
+  await fetch('/api/admin/logout',{method:'POST'});
+  document.getElementById('loginScreen').classList.add('show');
+  document.getElementById('adminLayout').style.display='none';
+  document.getElementById('loginPw').value='';
+}
+function showAdmin(){document.getElementById('adminLayout').style.display='grid';loadDashboard();loadVendors()}
+
+// ── NAV ────────────────────────────────────────────────────
+function showPage(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(el)el.classList.add('active');
+  const fns={dashboard:loadDashboard,endpoints:()=>{},checks:loadChecksPage,validation:loadValidationPage,import:loadImportPage,weights:loadWeights,security:()=>{},history:loadHistory};
+  fns[id]?.();
+}
+
+// ── DASHBOARD ──────────────────────────────────────────────
+async function loadDashboard(){
+  const r=await fetch('/api/admin/stats');const d=await r.json();
+  const colors=['#6080ff','#fbbf24','#34d399','#a5b4fc'];
+  const labels=['Fabricantes','Versões DB','Controles DB','Análises'];
+  const vals=[d.vendors,d.versions,d.checks,d.analyses];
+  document.getElementById('statsGrid').innerHTML=vals.map((v,i)=>`<div class="stat-card"><div class="sv" style="color:${colors[i]}">${v}</div><div class="sl">${labels[i]}</div></div>`).join('');
+  document.getElementById('histDash').innerHTML=(d.history||[]).map(h=>`<tr>
+    <td><b>${h.company||'—'}</b></td><td>${(h.vendor_slug||'').toUpperCase()}</td>
+    <td><span style="font-family:'IBM Plex Mono',monospace;font-size:.72rem">${h.version||'—'}</span></td>
+    <td><b style="color:${sc(h.score)}">${h.score}</b></td>
+    <td><span class="badge ${h.risk_level}">${h.risk_level}</span></td>
+    <td style="font-size:.72rem;color:var(--muted2)">${new Date(h.created_at).toLocaleString('pt-BR')}</td>
+  </tr>`).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--muted2);padding:22px">Nenhuma análise ainda</td></tr>';
+}
+function sc(s){return s>=85?'#34d399':s>=65?'#fbbf24':s>=40?'#f87171':'#ef4444'}
+
+// ── VENDORS ────────────────────────────────────────────────
+async function loadVendors(){
+  const r=await fetch('/api/vendors');allVendors=await r.json();renderVendorsPage();populateImportVersions();
+}
+function renderVendorsPage(){
+  const div=document.getElementById('vendorsContent');
+  div.innerHTML=allVendors.map(v=>`<div class="tcard" style="margin-bottom:14px">
+    <div class="tcard-head"><h3>${v.icon||'🔥'} ${v.name}</h3><span style="font-family:'IBM Plex Mono',monospace;font-size:.65rem;color:var(--muted2)">${v.description||''}</span></div>
+    <table><thead><tr><th>Versão</th><th>Label</th><th>Padrão</th><th>Status</th><th>Ações</th></tr></thead><tbody>
+    ${(v.versions||[]).map(ver=>`<tr>
+      <td><span style="font-family:'IBM Plex Mono',monospace;font-weight:600">${ver.version}</span></td><td>${ver.label}</td>
+      <td>${ver.is_default?'<span class="badge active">★ Padrão</span>':''}</td>
+      <td><span class="badge ${ver.active?'active':'inactive'}">${ver.active?'Ativa':'Inativa'}</span></td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="gotoChecks(${ver.id})">Ver Controles</button>
+        <button class="btn btn-danger btn-sm" onclick="deactivateVer(${ver.id})">Desativar</button>
+      </td>
+    </tr>`).join('')}
+    </tbody></table></div>`).join('');
+  const sel=document.getElementById('newVerVendor');
+  sel.innerHTML=allVendors.map(v=>`<option value="${v.id}">${v.name}</option>`).join('');
+}
+async function addVersion(){
+  const vid=document.getElementById('newVerVendor').value,ver=document.getElementById('newVerVer').value.trim(),label=document.getElementById('newVerLabel').value.trim();
+  if(!ver||!label){alert('Preencha versão e label.');return}
+  const r=await fetch('/api/admin/versions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({vendor_id:parseInt(vid),version:ver,label})});
+  const d=await r.json();if(d.ok){toast(`✓ Versão '${label}' adicionada`,'ok');loadVendors()}
+}
+async function deactivateVer(vid){if(!confirm('Desativar versão?'))return;await fetch(`/api/admin/versions/${vid}`,{method:'DELETE'});toast('Versão desativada','ok');loadVendors()}
+function gotoChecks(vid){currentVerId=vid;document.querySelectorAll('.sb-item')[2]?.click()}
+
+// ── CHECKS PAGE ────────────────────────────────────────────
+async function loadChecksPage(){
+  if(!allVendors.length){const r=await fetch('/api/vendors');allVendors=await r.json()}
+  renderVerTabs();if(!currentVerId&&allVendors[0]?.versions?.[0])currentVerId=allVendors[0].versions[0].id;
+  if(currentVerId)loadChecks(currentVerId);
+}
+function renderVerTabs(){
+  document.getElementById('verTabs').innerHTML=allVendors.flatMap(v=>(v.versions||[]).map(ver=>`<button class="ver-tab ${ver.id===currentVerId?'active':''}" data-vid="${ver.id}" onclick="selectVerTab(this,${ver.id})">${v.icon||''} ${ver.label}</button>`)).join('');
+}
+function selectVerTab(el,vid){document.querySelectorAll('.ver-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');currentVerId=vid;loadChecks(vid)}
+async function loadChecks(vid){const r=await fetch(`/api/admin/checks/${vid}`);allChecks=await r.json();renderChecksTable(allChecks)}
+function renderChecksTable(checks){
+  document.getElementById('checksBody').innerHTML=checks.map(c=>`<tr id="chk-${c.id}">
+    <td><span style="font-family:'IBM Plex Mono',monospace;font-size:.7rem">${c.cid}</span></td>
+    <td style="max-width:200px">${c.title}</td>
+    <td><span style="font-size:.72rem;color:var(--muted2)">${c.category}</span></td>
+    <td><span class="badge ${c.severity}">${c.severity}</span></td>
+    <td><span style="font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--accent2)">${c.pattern_type}</span></td>
+    <td><label class="toggle"><input type="checkbox" ${c.active?'checked':''} onchange="toggleCheck(${c.id},this.checked)"><span class="toggle-slider"></span></label></td>
+    <td><button class="btn btn-ghost btn-sm btn-icon" onclick="openEditModal(${c.id})" title="Editar">✏️</button></td>
+  </tr>`).join('')||'<tr><td colspan="7" style="text-align:center;color:var(--muted2);padding:22px">Nenhum controle</td></tr>';
+}
+function filterChecks(){const q=document.getElementById('checkSearch').value.toLowerCase();renderChecksTable(allChecks.filter(c=>c.title.toLowerCase().includes(q)||c.cid.toLowerCase().includes(q)||c.category.toLowerCase().includes(q)))}
+async function toggleCheck(id,active){await fetch(`/api/admin/checks/${id}/toggle`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({active:active?1:0})})}
+
+// ── MODAL ──────────────────────────────────────────────────
+const pHelps={regex_present:'Regex que DEVE ser encontrado',regex_absent:'Regex que NÃO deve ser encontrado',value_lte:'Regex numérico; param = máximo',value_gte:'Regex numérico; param = mínimo',xml_present:'XPath que deve existir',xml_absent:'XPath que não deve existir',xml_value_eq:'XPath == param',xml_value_ne:'XPath ≠ param',always_pass:'Verificação informativa'};
+function updatePHelp(){document.getElementById('pHelp').textContent=pHelps[document.getElementById('ePType').value]||''}
+function openEditModal(id){
+  const c=allChecks.find(x=>x.id===id);if(!c)return;
+  editingId=id;
+  document.getElementById('editId').value=id;document.getElementById('editVerId').value=currentVerId;
+  document.getElementById('eCid').value=c.cid;document.getElementById('eTitle').value=c.title;
+  document.getElementById('eCat').value=c.category;document.getElementById('eSev').value=c.severity;
+  document.getElementById('ePType').value=c.pattern_type;document.getElementById('ePattern').value=c.pattern||'';
+  document.getElementById('eParam').value=c.param||'';document.getElementById('eDesc').value=c.description;
+  document.getElementById('eRec').value=c.recommendation;
+  document.getElementById('modalTitle').textContent=`${c.cid}: ${c.title}`;
+  updatePHelp();document.getElementById('editModal').classList.add('show');
+}
+function openNewCheckModal(){
+  if(!currentVerId){alert('Selecione uma versão.');return}
+  editingId=null;
+  ['editId','eCid','eTitle','ePattern','eParam','eDesc','eRec'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('editVerId').value=currentVerId;document.getElementById('eSev').value='High';
+  document.getElementById('ePType').value='regex_present';document.getElementById('modalTitle').textContent='Novo Controle';
+  updatePHelp();document.getElementById('editModal').classList.add('show');
+}
+function closeModal(){document.getElementById('editModal').classList.remove('show')}
+async function saveCheck(){
+  const data={cid:document.getElementById('eCid').value.trim(),title:document.getElementById('eTitle').value.trim(),
+    category:document.getElementById('eCat').value,severity:document.getElementById('eSev').value,
+    pattern_type:document.getElementById('ePType').value,pattern:document.getElementById('ePattern').value.trim()||null,
+    param:document.getElementById('eParam').value.trim()||null,description:document.getElementById('eDesc').value.trim(),
+    recommendation:document.getElementById('eRec').value.trim(),active:1};
+  if(!data.cid||!data.title){alert('ID e Título obrigatórios.');return}
+  if(editingId){await fetch(`/api/admin/checks/${editingId}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})}
+  else{await fetch('/api/admin/checks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...data,version_id:parseInt(document.getElementById('editVerId').value)})})}
+  closeModal();loadChecks(currentVerId);toast('✓ Controle salvo','ok');
+}
+
+// ── IMPORT ─────────────────────────────────────────────────
+function populateImportVersions(){
+  const opts=allVendors.flatMap(v=>(v.versions||[]).map(ver=>`<option value="${ver.id}">${v.name} — ${ver.label}</option>`)).join('');
+  ['importTxtVer','importPdfVer'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts});
+}
+function loadImportPage(){if(allVendors.length)populateImportVersions()}
+async function doImportTxt(){
+  const vid=document.getElementById('importTxtVer').value;const file=document.getElementById('importTxtFile').files[0];
+  if(!file){alert('Selecione um arquivo .txt');return}
+  const fd=new FormData();fd.append('version_id',vid);fd.append('file',file);
+  const r=await fetch('/api/admin/import/txt',{method:'POST',body:fd});const d=await r.json();
+  const el=document.getElementById('txtResult');
+  el.className=`import-result show ${d.errors?.length?'err':'ok'}`;
+  el.innerHTML=`✓ ${d.imported} controle(s) importado(s) de ${d.total} total.`+(d.errors?.length?`<br>Erros: ${d.errors.join(', ')}`:'');
+  if(d.imported>0)toast(`✓ ${d.imported} controles importados`,'ok');
+}
+async function doImportPdf(){
+  const vid=document.getElementById('importPdfVer').value;const file=document.getElementById('importPdfFile').files[0];
+  if(!file){alert('Selecione um arquivo PDF');return}
+  const fd=new FormData();fd.append('version_id',vid);fd.append('file',file);
+  const r=await fetch('/api/admin/import/pdf',{method:'POST',body:fd});const d=await r.json();
+  const el=document.getElementById('pdfResult');
+  el.className=`import-result show ${d.errors?.length&&!d.imported?'err':'ok'}`;
+  el.innerHTML=`✓ ${d.imported} controle(s) importado(s) de ${d.total} total.`+(d.errors?.length?`<br>Avisos: ${d.errors.slice(0,3).join('; ')}`:'');
+  if(d.imported>0)toast(`✓ ${d.imported} controles do PDF importados`,'ok');
+}
+function downloadTemplate(){window.location='/api/admin/import/template'}
+
+// ── WEIGHTS ────────────────────────────────────────────────
+async function loadWeights(){
+  const r=await fetch('/api/admin/weights');const d=await r.json();
+  document.getElementById('wCritical').value=d.Critical||10;document.getElementById('wHigh').value=d.High||6;
+  document.getElementById('wMedium').value=d.Medium||3;document.getElementById('wLow').value=d.Low||1;
+}
+async function saveWeights(){
+  const data={Critical:parseInt(document.getElementById('wCritical').value),High:parseInt(document.getElementById('wHigh').value),Medium:parseInt(document.getElementById('wMedium').value),Low:parseInt(document.getElementById('wLow').value)};
+  const r=await fetch('/api/admin/weights',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+  const d=await r.json();if(d.ok)toast('✓ Pesos salvos! Próximas análises usarão os novos pesos.','ok');
+}
+
+// ── SECURITY ───────────────────────────────────────────────
+async function changePw(){
+  const curr=document.getElementById('pwCurrent').value,nw=document.getElementById('pwNew').value,conf=document.getElementById('pwConfirm').value;
+  const msg=document.getElementById('pwMsg');
+  if(nw!==conf){msg.style.color='var(--fail)';msg.textContent='As senhas não coincidem';return}
+  const r=await fetch('/api/admin/change-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({current_password:curr,new_password:nw})});
+  const d=await r.json();
+  msg.style.color=d.ok?'var(--pass)':'var(--fail)';msg.textContent=d.ok?'✓ Senha alterada com sucesso!':d.error||'Erro';
+  if(d.ok){['pwCurrent','pwNew','pwConfirm'].forEach(id=>document.getElementById(id).value='')}
+}
+
+// ── HISTORY ────────────────────────────────────────────────
+async function loadHistory(){
+  const r=await fetch('/api/admin/history');const data=await r.json();
+  document.getElementById('histFull').innerHTML=data.map(h=>`<tr>
+    <td><b>${h.company||'—'}</b></td><td>${(h.vendor_slug||'').toUpperCase()}</td>
+    <td><span style="font-family:'IBM Plex Mono',monospace;font-size:.7rem">${h.version||'—'}</span></td>
+    <td><b style="color:${sc(h.score)}">${h.score}</b></td><td><span class="badge ${h.risk_level}">${h.risk_level}</span></td>
+    <td style="color:var(--pass)">${h.passed}</td><td style="color:var(--fail)">${h.failed}</td>
+    <td style="font-size:.72rem;color:var(--muted2)">${new Date(h.created_at).toLocaleString('pt-BR')}</td>
+  </tr>`).join('')||'<tr><td colspan="8" style="text-align:center;color:var(--muted2);padding:22px">Nenhuma análise ainda</td></tr>';
+}
+
+// ── VALIDATION ─────────────────────────────────────────────
+let valData=null;
+function loadValidationPage(){
+  if(!allVendors.length)return;
+  const sel=document.getElementById('valVersionSel');
+  sel.innerHTML=allVendors.flatMap(v=>(v.versions||[]).map(ver=>`<option value="${ver.id}">${v.name} — ${ver.label}</option>`)).join('');
+}
+async function runValidation(){
+  const vid=document.getElementById('valVersionSel').value;
+  if(!vid){alert('Selecione uma versão');return}
+  document.getElementById('valSummary').style.display='none';
+  document.getElementById('valLoading').style.display='block';
+  document.getElementById('valRunBtn').disabled=true;
+  let count=0;
+  const interval=setInterval(()=>{count++;document.getElementById('valLoadingMsg').textContent=`VALIDANDO CONTROLES... (${count}s)`;},1000);
+  try{
+    const r=await fetch(`/api/admin/validate/${vid}`);
+    if(!r.ok)throw new Error(await r.text());
+    valData=await r.json();clearInterval(interval);renderValidation(valData);
+  }catch(e){clearInterval(interval);alert('Erro: '+e.message);}
+  finally{document.getElementById('valLoading').style.display='none';document.getElementById('valRunBtn').disabled=false;}
+}
+function renderValidation(data){
+  const{counts,total,health,results,version_label}=data;
+  const cardDefs=[
+    {label:'Total',val:total,color:'#6080ff'},
+    {label:'✅ OK',val:counts.OK,color:'var(--pass)'},
+    {label:'⚠️ Aviso',val:counts.WARN,color:'var(--warn)'},
+    {label:'❌ Erro',val:counts.ERROR,color:'var(--fail)'},
+  ];
+  document.getElementById('valCards').innerHTML=cardDefs.map(c=>`
+    <div class="stat-card">
+      <div class="sv" style="color:${c.color}">${c.val}</div>
+      <div class="sl">${c.label}</div>
+      ${c.label==='Total'?`
+        <div class="health-bar-wrap">
+          <div class="health-bar" style="width:${health}%;background:${health>=80?'var(--pass)':health>=50?'var(--warn)':'var(--fail)'}"></div>
+        </div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.6rem;color:var(--muted2);margin-top:5px">
+          ${health}% de integridade — ${version_label}
+        </div>`:''}
+    </div>`).join('');
+  renderValResults(results);
+  document.getElementById('valSummary').style.display='block';
+}
+function renderValResults(results){
+  const status_filter=document.getElementById('valFilter')?.value||'all';
+  const search=(document.getElementById('valSearch')?.value||'').toLowerCase();
+  const filtered=results.filter(r=>{
+    const matchStatus=status_filter==='all'||r.validation.status===status_filter;
+    const matchSearch=!search||r.title.toLowerCase().includes(search)||r.cid.toLowerCase().includes(search)||r.category.toLowerCase().includes(search);
+    return matchStatus&&matchSearch;
+  });
+  const order={ERROR:0,WARN:1,OK:2};
+  filtered.sort((a,b)=>order[a.validation.status]-order[b.validation.status]);
+  document.getElementById('valResultCount').textContent=`${filtered.length} de ${results.length} controle(s)`;
+  document.getElementById('valResultsBody').innerHTML=filtered.map(r=>{
+    const v=r.validation;
+    const testsHtml=v.tests.map(t=>`
+      <div class="val-test ${t.result}">
+        <div class="t-name">${t.result==='PASS'?'✓':t.result==='FAIL'?'✗':t.result==='WARN'?'⚠':'–'} ${t.name}</div>
+        <div class="t-msg">${t.msg}</div>
+      </div>`).join('');
+    const issuesHtml=v.issues.length?v.issues.map(i=>`<div class="val-issue">⚠ ${i}</div>`).join(''):'';
+    const patternHtml=r.pattern?`<div style="margin-top:8px;font-size:.7rem;color:var(--muted2)">Padrão:</div>
+       <div class="val-pattern-box">${r.pattern}</div>
+       ${r.param?`<div style="font-size:.7rem;color:var(--muted2);margin-top:4px">Param: <b>${r.param}</b></div>`:''}`:'';
+    return`
+    <div class="val-row" id="val-${r.id}">
+      <div class="val-header" onclick="toggleValRow(${r.id})">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:.63rem;color:var(--muted2)">${r.cid}</span>
+        <div>
+          <div style="font-size:.82rem;font-weight:500">${r.title}</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:.57rem;color:var(--muted2)">${r.category} · ${r.pattern_type}</div>
+        </div>
+        <span class="badge ${r.severity}">${r.severity}</span>
+        <span class="val-status ${v.status}">${v.status==='OK'?'✅ OK':v.status==='WARN'?'⚠️ AVISO':'❌ ERRO'}</span>
+        <span style="font-size:.7rem;color:var(--muted2)">${v.pass_count}/${v.tests.length} testes</span>
+        <span style="color:var(--muted2);font-size:.8rem">${r.active?'':'🔴'}</span>
+      </div>
+      <div class="val-detail">
+        ${patternHtml}
+        ${issuesHtml}
+        <div style="margin-top:10px;font-size:.68rem;color:var(--muted2);letter-spacing:1.5px;font-family:'IBM Plex Mono',monospace">TESTES AUTOMÁTICOS</div>
+        <div class="val-tests">${testsHtml}</div>
+      </div>
+    </div>`;
+  }).join('')||'<div style="text-align:center;color:var(--muted2);padding:28px;font-size:.82rem">Nenhum resultado</div>';
+}
+function toggleValRow(id){document.getElementById('val-'+id)?.classList.toggle('expanded')}
+function filterValResults(){if(valData)renderValResults(valData.results)}
+function exportValReport(){
+  if(!valData)return;
+  const rows=[['ID','Título','Categoria','Severidade','Tipo Padrão','Status Validação','Problemas','Testes OK','Testes FAIL']];
+  valData.results.forEach(r=>{rows.push([r.cid,r.title,r.category,r.severity,r.pattern_type,r.validation.status,r.validation.issues.join('; ')||'—',r.validation.pass_count,r.validation.fail_count])});
+  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download=`validacao_checks_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+// ── INIT ───────────────────────────────────────────────────
+checkAuth();
+document.getElementById('editModal').addEventListener('click',function(e){if(e.target===this)closeModal()});
+document.getElementById('loginPw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+</script>
+</body>
+</html>

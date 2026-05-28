@@ -1,0 +1,332 @@
+
+.hd-badge-title{
+  margin-left: auto;       /* mantém o bloco inteiro à direita do header */
+  display: flex;
+  flex-direction: column;  /* empilha: topo (logo+switch) acima, badge abaixo */
+  align-items: flex-end;   /* alinha pela direita */
+  gap: 8px;                /* espaço entre topo e badge */
+  padding: 0;
+}
+
+/* -------- TOPO: logo + switch lado a lado -------- */
+.hd-badge-title .title-top{
+  display: flex;
+  align-items: center;
+  gap: 12px;               /* espaço entre logo e switch */
+}
+
+/* (Opcional) Em telas bem estreitas, centralizar o bloco à direita do header */
+@media (max-width: 520px){
+  .hd-badge-title{
+    align-items: center;   /* centraliza logo+switch e badge */
+  }
+}
+
+
+/* -------- 2) THEME SWITCH (estilo CodePen adaptado) -------- */
+/* Container do switch (posicionado ao lado da logo) */
+.switch{
+  position: relative;
+  width: 42px;
+  height: 42px;
+  display: inline-block;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: #080c14;
+  backdrop-filter: saturate(140%) blur(2px);
+  transition: background .2s ease, border-color .2s ease, transform .1s ease;
+}
+.switch:hover{ background: rgba(255,255,255,.10); }
+.switch:active{ transform: scale(.98); }
+
+/* O input cobre toda a área clicável */
+.switch input,
+.switch ion-icon{
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transition: all .3s ease-in-out;
+}
+
+.switch input{
+  appearance: none;
+  cursor: pointer;
+  z-index: 1;
+  border-radius: 999px;
+}
+
+/* Ícones centralizados; as tags <ion-icon> vêm do Ionicons */
+.switch ion-icon{
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  color: var(--text);
+}
+
+/* Estados (mesma lógica do CodePen: alterna opacidade/rotação) */
+.switch .on,
+.switch input:checked ~ .off{
+  opacity: 1;
+  transform: rotate(0deg);
+}
+.switch .off{
+  opacity: 0;
+  transform: rotate(-45deg);
+}
+.switch input:checked ~ .on{
+  opacity: 0;
+  transform: rotate(45deg);
+}
+
+/* Aparência do switch quando o tema claro estiver ativo */
+html[data-theme="light"] .switch{
+  border-color: #d1d5db;
+  background: #f5f7fb;
+}
+html[data-theme="light"] .switch:hover{
+  background: rgba(0,0,0,.07);
+}
+html[data-theme="light"] .switch ion-icon{
+  color: #111827;
+}
+
+/* -------- 3) THEME LIGHT: redefinição de variáveis -------- */
+/* Usa suas variáveis existentes; carrega cores claras só quando data-theme="light" */
+html[data-theme="light"]{
+  color-scheme: light;
+  --bg:        rgb(245, 247, 251);
+  --surface:   #f1f1f1;
+  --surface2:  rgb(248, 250, 252);
+  --border:    #e5e7eb;
+  --border2:   #dbe1e8;
+  --accent:    #227685;
+  --accent2:   #ff5c1a;
+  --accent3:   #7c3aed;
+  --pass:      #10b981;
+  --fail:      #ef4444;
+  --warn:      #f59e0b;
+  --crit:      #dc2626;
+  --text:      #010101;    /* texto escuro */
+  --muted:     rgb(75, 79, 84);    /* cinzas legíveis no claro */
+  --muted2:    #64748b;
+}
+
+/* -------- 4) Ajustes finos no tema claro (onde havia cores fixas) -------- */
+
+/* Fundo decorativo do body no claro (suaviza os padrões) */
+html[data-theme="light"] body{
+  background: var(--border);
+  background-image:
+    radial-gradient(ellipse 80% 60% at 50% -20%, rgba(34, 118, 133, 0.3) 0%, transparent 60%),
+    repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(75, 79, 84, 0.1) 40px),
+    repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(75, 79, 84, 0.1) 40px);
+}
+
+/* "Scan line" mais sutil no claro */
+html[data-theme="light"] body::after{
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 2px, rgba(0,0,0,.03) 2px, rgba(0,0,0,.03) 4px
+  );
+  opacity: .22;
+}
+
+
+html[data-theme="light"] .logo{
+  background:linear-gradient(135deg,var(--accent) 0%,var(--pass) 100%);
+}
+
+html[data-theme="light"] .upload-card{
+  background: rgba(255, 255, 255, 0.85);
+  
+}
+
+/* Barra Superior */
+html[data-theme="light"] .upload-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(-90deg, var(--accent), transparent 40%);
+}
+
+/* Barra Inferior */
+html[data-theme="light"] .upload-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), transparent 60%);
+}
+
+html[data-theme="light"] .section-label{
+  color: var(--accent);
+}
+
+html[data-theme="light"] .section-label::after{
+  background: var(--accent);
+}
+
+html[data-theme="light"] .title-top{
+  background: var(--border);
+}
+
+
+/* Inputs tinham fundo escuro fixo */
+html[data-theme="light"] .form-input{
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--accent);
+}
+
+/* Drop zone */
+html[data-theme="light"] .drop-zone{
+  background: var(--bg);
+  border-color: var(--accent);
+}
+html[data-theme="light"] .drop-zone:hover,
+html[data-theme="light"] .drop-zone.drag{
+  background: rgba(245, 247, 251,.8);
+}
+
+html[data-theme="light"] .form-label{
+  color: var(--accent);
+}
+
+html[data-theme="light"] .hd-sub{
+  color: var(--text);
+}
+
+html[data-theme="light"] .demo-btn{
+  color: #ffa200;;
+}
+
+html[data-theme="light"] .risk-hero{
+  background: rgba(255, 255, 255, 0.85);
+}
+
+/* Detalhes do check (fundo escuro no tema original) */
+html[data-theme="light"] .check-detail{
+  background: #ffffff;
+  border: 1px solid var(--border);
+}
+
+/* Hovers de itens de check */
+html[data-theme="light"] .check-item:hover{
+  background: rgba(0,0,0,.03);
+}
+html[data-theme="light"] .check-item.expanded{
+  background: rgba(0,0,0,.04);
+}
+
+html[data-theme="light"] .check-cat{
+  color: var(--accent);
+}
+
+/* Vendor buttons */
+html[data-theme="light"] .vendor-btn{
+  background: var(--surface2);
+  border-color: var(--border2);
+  color: var(--text);
+}
+html[data-theme="light"] .vendor-btn:hover{
+  background: rgba(248, 250, 252, 0.70);
+}
+html[data-theme="light"] .analyze-btn{
+  width:100%;padding:15px;margin-top:8px;
+  background:linear-gradient(135deg,var(--accent) 0%, #00daff 100%);
+  border:none;border-radius:10px;color: var(--bg);
+  font-family:var(--font-display);font-weight:900;font-size:1.1rem;
+  letter-spacing:2px;text-transform:uppercase;cursor:pointer;
+  transition:all .2s;
+}
+
+html[data-theme="light"] .vendor-btn.active{
+  background: #ffffff;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(0,201,240,.15) inset;
+}
+
+/* Botão JSON (melhorar hover no claro) */
+html[data-theme="light"] .btn-json{
+  background: transparent;
+  color: var(--accent);
+  border-color: var(--accent);
+}
+html[data-theme="light"] .btn-json:hover{
+  background: rgba(0,201,240,.10);
+}
+
+/* Pills/filtros */
+html[data-theme="light"] .pills .pill{
+  background: #eef2f7;
+  color: var(--text);
+  border-color: var(--border2);
+}
+html[data-theme="light"] .pills .pill.active{
+  background: rgba(0,201,240,.15);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+html[data-theme="light"] .footer{
+  color: #000;
+}
+
+html[data-theme="light"] .risk-meta .risk-company{
+  color: var(--accent);
+}
+
+
+html[data-theme="light"] .stat .lbl{
+  color: var(--accent);
+}
+
+
+html[data-theme="light"] .score-lbl{
+  color: var(--accent);
+}
+
+html[data-theme="light"] .s-total{
+  color: var(--accent);
+}
+
+html[data-theme="light"] .sev-card{
+  background:rgba(255, 255, 255, 0.85);
+}
+
+html[data-theme="light"] .chart-card{
+  background: rgba(255, 255, 255, 0.85);
+}
+
+html[data-theme="light"] .chart-title{
+  color: var(--accent);
+}
+
+html[data-theme="light"] .checks-header{
+  background: #ffffff;
+}
+
+html[data-theme="light"] .chart-wrap{
+  color: var(--border);
+}
+html[data-theme="light"] .det-lbl{
+  color: var(--text);
+}
+
+html[data-theme="light"] .det-rec{
+  font-family:var(--font-mono);font-size:.72rem;color:var(--accent);
+  background:rgba(0,201,240,.3);padding:6px 10px;border-radius:6px;
+  border-left:2px solid var(--accent);margin-top:2px;
+}
+
+html[data-theme="light"] .footer-final{
+  background: #f1f1f1;
+}
+
+
+/* (Os demais componentes já seguem as variáveis e herdam automaticamente) */

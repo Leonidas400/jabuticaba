@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Admin - CIS Analyzer v4</title>
+<link rel="icon" type="image/png" href="/static/pics/Designer.png">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/admin.css">
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-screen show" id="loginScreen">
+  <div class="login-glow"></div>
+  <div class="login-box">
+    <div class="login-logo"><img src="/static/pics/DSX-favicon-branco.png" alt="CIS Analyzer" style="width:24px;height:24px;"></div>
+    <div class="login-title">Admin Panel</div>
+    <div class="login-sub">CIS ANALYZER v4</div>
+    <input class="login-input" type="password" id="loginPw" placeholder="Senha de acesso" autocomplete="current-password">
+    <button class="login-btn" onclick="doLogin()">Entrar</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout" id="adminLayout" style="display:none">
+
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon"><img src="/static/pics/DSX-favicon-branco.png" alt="CIS Analyzer" style="width:16px;height:16px;"></div>
+    <div class="sb-logo-text">
+      <div class="sb-logo-name">Admin Panel</div>
+      <div class="sb-logo-sub">CIS Analyzer v4</div>
+    </div>
+  </div>
+  <nav class="sb-nav">
+    <button class="sb-item active" onclick="showPage('dashboard',this)">Dashboard</button>
+    <button class="sb-item" onclick="showPage('checks',this)">Controles CIS</button>
+    <button class="sb-item" onclick="showPage('weights',this)">Pesos Severidade</button>
+    <button class="sb-item" onclick="showPage('endpoints',this)">Endpoints API</button>
+    <button class="sb-item" onclick="showPage('rules',this)">Regras de Acesso</button>
+    <button class="sb-item" onclick="showPage('security',this)">Seguranca</button>
+    <button class="sb-item" onclick="showPage('history',this)">Historico</button>
+  </nav>
+  <div class="sb-footer">
+    <a href="/" class="sb-link">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Voltar ao Analisador
+    </a>
+    <button class="sb-btn" onclick="toggleTheme()" id="themeBtn">Tema</button>
+    <button class="sb-btn danger" onclick="doLogout()" style="margin-top:6px">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sair
+    </button>
+  </div>
+</aside>
+
+<main class="main">
+
+  <!-- DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div class="page-header">
+      <div class="page-title">Dashboard</div>
+      <div class="page-sub">Visao geral do sistema &middot; API-only &middot; SonicWall &middot; FortiGate &middot; pfSense</div>
+    </div>
+    <div class="stats-grid" id="statsGrid"></div>
+    <div class="tcard">
+      <div class="tcard-head"><h3>Ultimas Analises</h3></div>
+      <table><thead><tr><th>Empresa</th><th>Fabricante</th><th>Score</th><th>Risco</th><th>Pass</th><th>Fail</th><th>Data</th></tr></thead>
+      <tbody id="histDash"></tbody></table>
+    </div>
+  </div>
+
+  <!-- CONTROLES CIS -->
+  <div class="page" id="page-checks">
+    <div class="page-header">
+      <div class="page-title">Controles CIS</div>
+      <div class="page-sub">Controles via API armazenados no banco de dados — ative/desative, edite ou sincronize com o canonico</div>
+    </div>
+
+    <!-- Vendor selector + actions -->
+    <div class="checks-toolbar">
+      <div class="checks-vendor-tabs" id="checksVendorTabs"></div>
+      <div class="checks-ver-row">
+        <input class="search-input" id="checkSearch" placeholder="Buscar por ID, titulo, categoria..." oninput="filterChecks()">
+        <button class="btn btn-ghost btn-sm" onclick="openSyncModal()" title="Comparar com canonico e sincronizar">&#10227; Sincronizar</button>
+        <button class="btn btn-primary btn-sm" onclick="openCheckModal()">+ Novo Controle</button>
+      </div>
+    </div>
+
+    <!-- Check counters -->
+    <div class="check-counters" id="checkCounters"></div>
+
+    <div class="tcard">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:70px">ID</th>
+            <th>Titulo</th>
+            <th style="width:140px">Categoria</th>
+            <th style="width:80px">Sev.</th>
+            <th style="width:130px">Tipo</th>
+            <th style="width:60px">Ativo</th>
+            <th style="width:80px">Acoes</th>
+          </tr>
+        </thead>
+        <tbody id="checksBody"></tbody>
+      </table>
+      <div id="checksEmpty" style="display:none;padding:40px;text-align:center;color:var(--muted2);font-family:'IBM Plex Mono',monospace;font-size:.72rem;letter-spacing:1px">
+        NENHUM CONTROLE ENCONTRADO
+      </div>
+    </div>
+  </div>
+
+  <!-- PESOS SEVERIDADE -->
+  <div class="page" id="page-weights">
+    <div class="page-header">
+      <div class="page-title">Pesos de Severidade</div>
+      <div class="page-sub">Ajuste o impacto de cada nivel no calculo do score e nos graficos do PDF</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+      <div class="tcard">
+        <div class="tcard-head"><h3>Configurar Pesos</h3></div>
+        <div style="padding:22px">
+          <p style="font-size:.82rem;color:var(--text2);margin-bottom:22px;line-height:1.65">
+            O score de risco e calculado com base nos pesos de cada severidade.<br>
+            Pesos maiores = maior impacto ao reprovar um controle.<br>
+            <strong style="color:var(--accent)">Os pesos sao aplicados automaticamente na analise e no PDF exportado.</strong>
+          </p>
+          <div class="weights-grid">
+            <div class="weight-card Critical">
+              <label>&#9888; Critical</label>
+              <input class="weight-input" id="wCritical" type="number" min="1" max="100" value="10">
+              <span class="weight-hint">impacto maximo</span>
+            </div>
+            <div class="weight-card High">
+              <label>&#9650; High</label>
+              <input class="weight-input" id="wHigh" type="number" min="1" max="100" value="6">
+              <span class="weight-hint">impacto alto</span>
+            </div>
+            <div class="weight-card Medium">
+              <label>&#9679; Medium</label>
+              <input class="weight-input" id="wMedium" type="number" min="1" max="100" value="3">
+              <span class="weight-hint">impacto moderado</span>
+            </div>
+            <div class="weight-card Low">
+              <label>&#9661; Low</label>
+              <input class="weight-input" id="wLow" type="number" min="1" max="100" value="1">
+              <span class="weight-hint">impacto baixo</span>
+            </div>
+          </div>
+          <div style="margin-top:20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="saveWeights()">Salvar Pesos</button>
+            <button class="btn btn-ghost btn-sm" onclick="resetWeights()">Restaurar Padrao</button>
+            <small id="weightMsg" style="font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--pass)"></small>
+          </div>
+        </div>
+      </div>
+      <div class="tcard">
+        <div class="tcard-head"><h3>Visualizacao do Impacto</h3></div>
+        <div style="padding:22px" id="weightsPreview"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ENDPOINTS API -->
+  <div class="page" id="page-endpoints">
+    <div class="page-header">
+      <div class="page-title">Endpoints API</div>
+      <div class="page-sub">Gerencie endpoints por fornecedor</div>
+    </div>
+    <div id="vendorsContainer"></div>
+  </div>
+
+  <!-- REGRAS DE ACESSO -->
+  <div class="page" id="page-rules">
+    <div class="page-header">
+      <div class="page-title">Regras de Acesso</div>
+      <div class="page-sub">Gerencie regras de auditoria de acesso por fornecedor</div>
+    </div>
+
+    <!-- Vendor selector + actions -->
+    <div class="checks-toolbar">
+      <div class="checks-vendor-tabs" id="rulesVendorTabs"></div>
+      <div class="checks-ver-row">
+        <input class="search-input" id="ruleSearch" placeholder="Buscar por nome, categoria..." oninput="filterRules()">
+        <button class="btn btn-primary btn-sm" onclick="openRuleModal()">+ Nova Regra</button>
+      </div>
+    </div>
+
+    <div class="tcard">
+      <table>
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Categoria</th>
+            <th style="width:100px">Sev.</th>
+            <th style="width:80px">Ativo</th>
+            <th style="width:100px">Acoes</th>
+          </tr>
+        </thead>
+        <tbody id="rulesBody"></tbody>
+      </table>
+      <div id="rulesEmpty" style="display:none;padding:40px;text-align:center;color:var(--muted2);font-family:'IBM Plex Mono',monospace;font-size:.72rem;letter-spacing:1px">
+        NENHUMA REGRA ENCONTRADA
+      </div>
+    </div>
+  </div>
+
+  <!-- SECURITY -->
+  <div class="page" id="page-security">
+    <div class="page-header">
+      <div class="page-title">Seguranca</div>
+      <div class="page-sub">Gerencie acesso ao painel admin</div>
+    </div>
+    <div class="tcard" style="max-width:480px">
+      <div class="tcard-head"><h3>Alterar Senha Admin</h3></div>
+      <div style="padding:22px">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Senha Atual</label><input class="form-control" type="password" id="pwCurrent" placeholder="******"></div>
+          <div class="form-group"><label class="form-label">Nova Senha</label><input class="form-control" type="password" id="pwNew" placeholder="Minimo 6 caracteres"></div>
+          <div class="form-group"><label class="form-label">Confirmar Nova Senha</label><input class="form-control" type="password" id="pwConfirm" placeholder="Repita a nova senha"></div>
+        </div>
+        <button class="btn btn-primary" onclick="changePw()">Alterar Senha</button>
+        <div id="pwMsg" style="margin-top:12px;font-size:.8rem;font-family:'IBM Plex Mono',monospace"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="page" id="page-history">
+    <div class="page-header">
+      <div class="page-title">Historico de Analises</div>
+      <div class="page-sub">Todas as analises realizadas via API</div>
+    </div>
+    <div class="tcard">
+      <div class="tcard-head">
+        <h3>Analises</h3>
+        <span id="histCount" style="font-family:'IBM Plex Mono',monospace;font-size:.65rem;color:var(--muted2)"></span>
+      </div>
+      <table><thead><tr><th>Empresa</th><th>Fabricante</th><th>Score</th><th>Risco</th><th>Pass</th><th>Fail</th><th>Total</th><th>Data</th></tr></thead>
+      <tbody id="histFull"></tbody></table>
+    </div>
+  </div>
+
+</main>
+</div><!-- /layout -->
+
+<!-- VENDOR MODAL -->
+<div class="modal-overlay" id="vendorModal">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-title">
+      <span id="vendorModalTitle">Editar Fornecedor</span>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Slug (identificador) *</label><input class="form-control" id="vSlug" placeholder="Ex: sonicwall, fortigate, cisco"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Nome *</label><input class="form-control" id="vName" placeholder="Ex: SonicWall SonicOS 7.x"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Base URL *</label><input class="form-control" id="vBase" placeholder="Ex: https://<host>/api/sonicos/"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Descricao</label><textarea class="form-control" id="vDesc" placeholder="Detalhes do fornecedor" rows="3"></textarea></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Emoji/Icone</label><input class="form-control" id="vIcon" placeholder="Ex: 🔥" style="font-size:2rem;text-align:center"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeVendorModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveVendor()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- VERSION MODAL -->
+<div class="modal-overlay" id="versionModal">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-title"><span id="versionModalTitle">Nova Versão</span></div>
+    <input type="hidden" id="vmVendorId">
+    <input type="hidden" id="vmVersionId">
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Linha de Versão *
+          <span style="font-size:.7rem;color:var(--muted2);font-weight:400;margin-left:6px">Ex: 7.1 (major.minor)</span>
+        </label>
+        <input class="form-control" id="vmVersion" placeholder="Ex: 7.1">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Label *</label>
+        <input class="form-control" id="vmLabel" placeholder="Ex: SonicWall SonicOS 7.1.x">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Versão Mínima de Firmware
+          <span style="font-size:.7rem;color:var(--muted2);font-weight:400;margin-left:6px">Ex: 7.1.1-7040 — deixe vazio para não verificar</span>
+        </label>
+        <input class="form-control" id="vmMinFw" placeholder="Ex: 7.1.1">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeVersionModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveVersion()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ENDPOINT MODAL -->
+<div class="modal-overlay" id="endpointModal">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-title">
+      <span>&#9906;</span>
+      <span id="endpointModalTitle">Novo Endpoint</span>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Fornecedor *</label>
+        <select class="form-control" id="eVendor">
+          <option value="">-- Selecione --</option>
+          <option value="sonicwall">SonicWall</option>
+          <option value="fortigate">FortiGate</option>
+          <option value="pfsense">pfSense</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row c2">
+      <div class="form-group"><label class="form-label">Secao *</label><input class="form-control" id="eSection" placeholder="Ex: Device Info, Management"></div>
+      <div class="form-group"><label class="form-label">Caminho *</label><input class="form-control" id="ePath" placeholder="Ex: system/base, api/v2"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Descricao</label><textarea class="form-control" id="eEndpointDesc" placeholder="Detalhes sobre este endpoint" rows="3"></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeEndpointModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveEndpoint()">Salvar Endpoint</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHECK MODAL -->
+<div class="modal-overlay" id="checkModal">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-title">
+      <span>&#9989;</span>
+      <span id="checkModalTitle">Novo Controle CIS</span>
+    </div>
+    <div class="form-row c2">
+      <div class="form-group"><label class="form-label">ID (CID) *</label><input class="form-control" id="eCid" placeholder="Ex: 1.1, FWR-2"></div>
+      <div class="form-group"><label class="form-label">Categoria</label>
+        <select class="form-control" id="eCat">
+          <option value="System Hardening">System Hardening</option>
+          <option value="Access Control">Access Control</option>
+          <option value="Senha e Complexidade">Senha e Complexidade</option>
+          <option value="Network Security">Network Security</option>
+          <option value="Firewall Policy">Firewall Policy</option>
+          <option value="VPN">VPN</option>
+          <option value="Encryption">Encryption</option>
+          <option value="Logging & Monitoring">Logging & Monitoring</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Titulo *</label><input class="form-control" id="eTitle"></div>
+    </div>
+    <div class="form-row c2">
+      <div class="form-group"><label class="form-label">Severidade</label>
+        <select class="form-control" id="eSev">
+          <option>Critical</option><option>High</option><option selected>Medium</option><option>Low</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Operador de Avaliação *</label>
+        <input class="form-control" id="eOperator" type="text" 
+               placeholder="Digite para buscar: habilitado, desabilitado, maior..." 
+               list="operatorsList" 
+               oninput="filterOperators(); updateOperatorHelp()" 
+               autocomplete="off">
+        <datalist id="operatorsList">
+          <option value="✓ Está Habilitado (booleano)" data-value="is_true"></option>
+          <option value="✗ Está Desabilitado (falsy)" data-value="is_false"></option>
+          <option value="≥ Maior ou Igual a (número)" data-value="gte"></option>
+          <option value="≤ Menor ou Igual a (número)" data-value="lte"></option>
+          <option value="= Igual a (texto - case insensitive)" data-value="str_eq"></option>
+          <option value="listaão Não Vazia" data-value="list_not_empty"></option>
+          <option value="⚙️ Lógica Python Customizada" data-value="handler"></option>
+        </datalist>
+      </div>
+    </div>
+    <div style="margin:0 0 12px;padding:8px 12px;background:rgba(42,143,158,.06);border:1px solid rgba(42,143,158,.12);border-radius:6px;font-size:.72rem;color:var(--text2)" id="operatorHelp"></div>
+    <div class="form-row c2">
+      <div class="form-group"><label class="form-label">Fornecedor *</label>
+        <select class="form-control" id="cVendor" onchange="updateEndpointSelect()">
+          <option value="">-- Selecione fornecedor --</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Endpoint da API</label>
+        <input class="form-control" id="eEndpoint" list="endpointsList" placeholder="Ex: cmdb/system/global">
+        <datalist id="endpointsList"></datalist>
+      </div>
+    </div>
+    <div class="form-row c2">
+      <div class="form-group"><label class="form-label">Caminho JSON (dot-notation)</label><input class="form-control" id="eJsonPath" placeholder="Ex: gateway_antivirus.enable"></div>
+      <div></div>
+    </div>
+    <div class="form-row" id="expectedRow" style="display:none">
+      <div class="form-group"><label class="form-label">Valor Esperado *</label><input class="form-control" id="eExpected" placeholder="Ex: 100 (para >=/<= ), enabled (para texto igual)"></div>
+    </div>
+    <div class="form-row" id="handlerKeyRow" style="display:none">
+      <div class="form-group"><label class="form-label">Handler Key (nome da funcao Python)</label><input class="form-control" id="eHandlerKey" placeholder="Ex: sw_firmware, fg_pol_av"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Descricao</label><textarea class="form-control" id="eDesc" placeholder="O que este controle verifica?"></textarea></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Recomendacao</label><textarea class="form-control" id="eRec" placeholder="Como corrigir se falhar?"></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeCheckModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveCheck()">Salvar Controle</button>
+    </div>
+  </div>
+</div>
+
+<!-- SYNC MODAL -->
+<div class="modal-overlay" id="syncModal">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-title">
+      <span>&#10227;</span>
+      <span>Sincronizacao com Canonico</span>
+    </div>
+    <div id="syncBody" style="max-height:65vh;overflow-y:auto">
+      <div style="padding:24px;text-align:center;color:var(--muted2)">Carregando...</div>
+    </div>
+  </div>
+</div>
+
+<!-- RULE MODAL -->
+<div class="modal-overlay" id="ruleModal">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-title">
+      <span id="ruleModalTitle">Nova Regra</span>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Tag *</label><input class="form-control" id="rTag" placeholder="Ex: dpi_off, any_src, no_log"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Nome *</label><input class="form-control" id="rName" placeholder="Ex: DPI Desabilitado"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Categoria</label><input class="form-control" id="rCategory" placeholder="Ex: Acesso Remoto"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Severidade</label>
+        <select class="form-control" id="rSeverity">
+          <option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option><option value="Critical">Critical</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Descricao</label><textarea class="form-control" id="rDescription" placeholder="Descricao da regra" rows="3"></textarea></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Recomendacao</label><textarea class="form-control" id="rRecommendation" placeholder="Como corrigir" rows="3"></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeRuleModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveRule()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toastEl"></div>
+
+<script src="/static/js/admin.js?v=2"></script>
+</body>
+</html>

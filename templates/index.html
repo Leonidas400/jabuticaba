@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>CIS Analyzer v4 - API</title>
+<link rel="icon" type="image/png" href="/static/pics/Designer.png">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo"><img src="/static/pics/DSX-favicon-branco.png" alt="CIS Analyzer"></div>
+  <div class="nav-brand">
+    <div class="nav-title">Multi-Firewall <span>CIS</span> Analyzer</div>
+    <div class="nav-sub">VALIDACAO VIA API &middot; SONICWALL &middot; FORTIGATE &middot; PFSENSE</div>
+  </div>
+  <div class="nav-actions">
+    <div class="nav-status"><span class="dot"></span><span id="navStatusTxt">PRONTO</span></div>
+    <a href="/admin" class="nav-btn">&#9881; Admin</a>
+    <button class="nav-btn" onclick="toggleTheme()" id="themeBtn">&#127769;</button>
+  </div>
+</nav>
+
+<!-- APP LAYOUT -->
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="conn-sidebar">
+    <div class="sb-section-label">Fabricante</div>
+    
+    <div class="vendor-dropdown">
+      <button class="vendor-dropdown-toggle" id="vendorToggle" onclick="toggleVendorMenu()">
+        <span class="vdt-icon" id="vendorIcon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4l3 2"/></svg></span>
+        <div class="vdt-info">
+          <span class="vdt-name" id="vendorName">SonicWall</span>
+          <span class="vdt-version" id="vendorVersion">SonicOS 7.x</span>
+        </div>
+        <span class="vdt-chevron">&#9660;</span>
+      </button>
+      
+      <div class="vendor-dropdown-menu" id="vendorMenu">
+        <div style="padding:12px;text-align:center;color:var(--muted2);font-size:.75rem">Carregando fabricantes...</div>
+      </div>
+    </div>
+
+    <div class="sb-section-label" style="margin-top:20px">Conexao</div>
+
+    <div class="sb-form">
+      <div class="sb-field">
+        <label>IP / Hostname <span class="req">*</span></label>
+        <input id="fHost" type="text" placeholder="192.168.1.1" autocomplete="off">
+      </div>
+      <div class="sb-field">
+        <label>Porta HTTPS</label>
+        <input id="fPort" type="number" value="443" min="1" max="65535">
+      </div>
+      <div class="sb-field">
+        <label>Usuario <span class="req">*</span></label>
+        <input id="fUser" type="text" placeholder="admin" autocomplete="off">
+      </div>
+      <div class="sb-field">
+        <label>Senha</label>
+        <input id="fPass" type="password" placeholder="********" autocomplete="new-password">
+      </div>
+      <div class="sb-field" id="apikeyRow" style="display:none">
+        <label>API Key <span style="color:var(--muted2);font-size:.6rem">(substitui senha)</span></label>
+        <input id="fApiKey" type="password" placeholder="Token da API" autocomplete="off">
+        <span class="sb-hint" id="apikeyHint"></span>
+      </div>
+      <div class="sb-field">
+        <label>Empresa (relatorio)</label>
+        <input id="fCompany" type="text" placeholder="Ex: Acme Corp">
+      </div>
+    </div>
+
+    <div class="sb-note" id="vendorNote">
+      Credenciais usadas apenas para autenticar via API REST.
+      <strong>Nao sao armazenadas.</strong>
+    </div>
+
+    <div class="sb-actions">
+      <button class="btn btn-test" onclick="testConn()">&#9889; Testar</button>
+      <button class="btn btn-analyze" id="analyzeBtn" onclick="runAnalysis()">&#9654; Analisar</button>
+    </div>
+
+    <div class="status-box" id="statusBox"></div>
+  </aside>
+
+  <!-- MAIN AREA -->
+  <main class="main-area">
+
+    <!-- WELCOME / IDLE STATE -->
+    <div id="idleState" class="idle-state">
+      <div class="idle-icon">
+        <img id="idleIconLight" src="/static/pics/Designer.png" alt="CIS Analyzer" style="width:80px;height:80px;" class="idle-icon-light">
+        <img id="idleIconDark" src="/static/pics/DSX-favicon-branco.png" alt="CIS Analyzer" style="width:80px;height:80px;" class="idle-icon-dark">
+      </div>
+      <div class="idle-title">CIS Benchmark Analyzer</div>
+      <div class="idle-sub">Configure a conexao na barra lateral e execute a analise para visualizar os resultados de conformidade CIS.</div>
+      <div class="idle-features">
+        <div class="idle-feat"><span>&#9989;</span> Controles CIS por fabricante</div>
+        <div class="idle-feat"><span>&#128202;</span> Score de risco calculado</div>
+        <div class="idle-feat"><span>&#128196;</span> Exportacao PDF e JSON</div>
+        <div class="idle-feat"><span>&#128275;</span> Regras de acesso auditadas</div>
+      </div>
+    </div>
+
+    <!-- LOADING -->
+    <div class="loading" id="loading" style="display:none">
+      <div class="spinner"></div>
+      <div class="loading-lbl" id="loadingLbl">CONECTANDO AO DISPOSITIVO...</div>
+    </div>
+
+    <!-- RESULTS -->
+    <div id="results" style="display:none">
+      <div class="risk-hero" id="riskHero">
+        <div class="score-ring">
+          <svg width="114" height="114" viewBox="0 0 114 114">
+            <circle class="ring-bg" cx="57" cy="57" r="49"/>
+            <circle class="ring-val" id="ringVal" cx="57" cy="57" r="49" stroke-dasharray="307.9" stroke-dashoffset="307.9"/>
+          </svg>
+          <div class="score-over">
+            <div class="score-num" id="scoreNum">--</div>
+            <div class="score-lbl">SCORE</div>
+          </div>
+        </div>
+        <div>
+          <div class="risk-level" id="riskLevel">--</div>
+          <div class="risk-sub" id="riskSub">--</div>
+          <div class="stat-row">
+            <div class="stat"><div class="sv" id="stTotal">--</div><div class="sl">Total</div></div>
+            <div class="stat pass"><div class="sv" id="stPass">--</div><div class="sl">Aprovado</div></div>
+            <div class="stat fail"><div class="sv" id="stFail">--</div><div class="sl">Reprovado</div></div>
+          </div>
+          <div class="prog-wrap"><div class="prog-bar" id="progBar"></div></div>
+        </div>
+      </div>
+
+      <div class="sev-grid" id="sevGrid"></div>
+
+      <div class="charts-row">
+        <div class="chart-card">
+          <div class="chart-title">score por categoria</div>
+          <div class="chart-wrap"><canvas id="radarChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">falhas por severidade</div>
+          <div class="chart-wrap"><canvas id="doughnutChart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button class="btn btn-json" onclick="downloadJSON()">&#11015; JSON</button>
+        <button class="btn btn-pdf"  onclick="exportPDF()">&#11015; PDF</button>
+        <button class="btn btn-ghost" onclick="newAnalysis()">&#8617; Nova Analise</button>
+      </div>
+
+
+      <!-- RESULT TABS -->
+      <div class="result-tabs" id="resultTabs">
+        <button class="rtab active" onclick="showResultTab('cis',this)">&#9745; Controles CIS</button>
+        <button class="rtab" onclick="showResultTab('fw-rules',this)">&#128737; Regras de Firewall</button>
+      </div>
+
+      <!-- TAB: CIS -->
+      <div id="tab-cis"></div>
+
+      <!-- TAB: FIREWALL RULES SECURITY -->
+      <div id="tab-fw-rules" style="display:none">
+        <div class="checks-card">
+          <div class="checks-head">
+            <h3 id="fwRulesTitle">segurança de regras de firewall</h3>
+            <div class="filter-group">
+              <span class="filter-label">Sev:</span>
+              <select class="filter-select" id="fFwSev" onchange="filterFwRules()">
+                <option value="all">Todas</option>
+                <option value="Critical">Crítico</option><option value="High">Alto</option>
+                <option value="Medium">Médio</option><option value="Low">Baixo</option>
+              </select>
+              <span class="filter-label">Check:</span>
+              <select class="filter-select" id="fFwCheck" onchange="filterFwRules()">
+                <option value="all">Todos os tipos</option>
+              </select>
+            </div>
+          </div>
+          <div id="fwCounters" class="rsummary"></div>
+          <div id="fwRulesList"></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div><!-- /app-layout -->
+
+<footer>CIS Analyzer v4 &middot; API-only &middot; SonicWall &middot; FortiGate &middot; pfSense &middot; <a href="/admin">Admin</a></footer>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>

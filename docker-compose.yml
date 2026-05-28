@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  web:
+    container_name: auditor_firewall
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5050:5050"
+    volumes:
+      - .:/app
+    environment:
+      - FLASK_DEBUG=1
+    restart: unless-stopped

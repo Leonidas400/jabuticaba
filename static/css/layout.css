@@ -1,0 +1,118 @@
+/* ── HEADER ── */
+header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 0 36px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 40px;
+  position: relative;
+}
+
+header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 120px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+}
+
+.logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #00c9f0 0%, #0050cc 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 0 24px rgba(0,201,240,.35);
+  flex-shrink: 0;
+}
+
+.hd-title {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 900;
+  letter-spacing: .5px;
+  line-height: 1;
+}
+
+.hd-title em {
+  color: var(--accent);
+  font-style: normal;
+}
+
+.hd-sub {
+  font-size: .8rem;
+  color: var(--muted2);
+  margin-top: 3px;
+  font-weight: 300;
+  letter-spacing: 1px;
+}
+
+.hd-badge-title {
+  margin-left: auto;
+  display: inline-block;
+  padding: 0%;
+}
+
+.title-top {
+  background: #0d1320;
+  border-radius: 10px;
+  width: 180px;
+  height: 60px;
+  margin-bottom: 20px;
+  align-items: center;
+  justify-content: center;
+}
+
+.hd-badge {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: .65rem;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 5px 12px;
+  border-radius: 3px;
+  letter-spacing: 2px;
+  opacity: .7;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  margin-top: -1rem;
+}
+
+/* ── FOOTER E LOGOS DSX ── */
+footer {
+  text-align: center;
+  padding: 28px 0;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: .65rem;
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+
+.footer-final {
+  background: #0d1320;
+  border-radius: 15px;
+}
+
+.logo-dsx-footer {
+  width: 50px;
+  height: 20px;
+  vertical-align: middle;
+  margin-right: 10px;
+}
+
+.logo-dsx {
+  width: 100%;
+  height: 100%;
+}
+
+.logo-dsx-titulo {
+  width: 80px;
+  height: 30px;
+}

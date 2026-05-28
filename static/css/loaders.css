@@ -1,0 +1,63 @@
+/* ── LOADING ── */
+.loading {
+  display: none;
+  text-align: center;
+  padding: 56px 0;
+}
+
+.spinner {
+  width: 52px;
+  height: 52px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-family: var(--font-mono);
+  font-size: .8rem;
+  color: var(--muted2);
+  letter-spacing: 2px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: .5; }
+  50% { opacity: 1; }
+}
+
+/* PDF LOADING */
+.pdf-spinner {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(8,12,20,.85);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pdf-spinner.show {
+  display: flex;
+}
+
+.pdf-spinner .spinner {
+  width: 60px;
+  height: 60px;
+  border-width: 4px;
+}
+
+.pdf-spinner p {
+  font-family: var(--font-mono);
+  font-size: .8rem;
+  color: var(--accent);
+  letter-spacing: 2px;
+}

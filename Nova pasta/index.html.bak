@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>CIS Analyzer v4 — API</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* ── TOKENS ──────────────────────────────────────────────── */
+:root {
+  --bg:       #070b16;
+  --bg2:      #0c1120;
+  --surface:  rgba(255,255,255,0.04);
+  --surface2: rgba(255,255,255,0.02);
+  --surface3: rgba(255,255,255,0.06);
+  --border:   rgba(255,255,255,0.08);
+  --border2:  rgba(255,255,255,0.12);
+  --border3:  rgba(255,255,255,0.06);
+  --accent:   #6080ff;
+  --accent2:  #9b6aff;
+  --grad:     linear-gradient(135deg,#5b7fff,#9b4dff);
+  --grad-h:   linear-gradient(135deg,#6e8fff,#b06aff);
+  --pass:     #34d399;
+  --fail:     #f87171;
+  --warn:     #fbbf24;
+  --crit:     #ef4444;
+  --text:     #dde6f4;
+  --text2:    #7a96bf;
+  --muted:    #3a506e;
+  --muted2:   #5470a0;
+  --shadow:   rgba(0,0,0,0.5);
+  --blue-glow:rgba(91,127,255,0.15);
+}
+[data-theme="light"] {
+  --bg:       #f0f4fc;
+  --bg2:      #e8edf8;
+  --surface:  rgba(255,255,255,0.85);
+  --surface2: rgba(255,255,255,0.6);
+  --surface3: rgba(255,255,255,0.95);
+  --border:   rgba(100,130,200,0.15);
+  --border2:  rgba(100,130,200,0.25);
+  --border3:  rgba(100,130,200,0.1);
+  --accent:   #4060e0;
+  --accent2:  #7840d0;
+  --grad:     linear-gradient(135deg,#4060e0,#7840d0);
+  --pass:     #059669;
+  --fail:     #dc2626;
+  --warn:     #d97706;
+  --crit:     #b91c1c;
+  --text:     #0f1929;
+  --text2:    #3d5470;
+  --muted:    #94a3b8;
+  --muted2:   #64748b;
+  --shadow:   rgba(0,0,0,0.12);
+  --blue-glow:rgba(64,96,224,0.08);
+}
+
+/* ── RESET ───────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+  line-height:1.5;
+}
+[data-theme="dark"] body{
+  background-image:
+    radial-gradient(ellipse 70% 50% at 50% -5%, rgba(91,127,255,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 80% 10%, rgba(155,74,255,0.07) 0%, transparent 50%);
+}
+
+/* ── LAYOUT ──────────────────────────────────────────────── */
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px 80px}
+
+/* ── NAV ─────────────────────────────────────────────────── */
+nav{
+  display:flex;align-items:center;gap:14px;
+  padding:16px 0 20px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:28px;
+  position:relative;
+}
+[data-theme="dark"] nav::after{
+  content:'';position:absolute;bottom:-1px;left:0;width:120px;height:1px;
+  background:linear-gradient(90deg,var(--accent),transparent);
+}
+.logo{
+  width:38px;height:38px;border-radius:10px;
+  background:var(--grad);
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;flex-shrink:0;
+  box-shadow:0 0 20px rgba(91,127,255,0.3);
+}
+.nav-brand{display:flex;flex-direction:column;gap:2px}
+.nav-title{
+  font-size:1rem;font-weight:700;letter-spacing:0.3px;color:var(--text);
+}
+.nav-title span{
+  background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.nav-sub{font-family:'IBM Plex Mono',monospace;font-size:.55rem;color:var(--muted2);letter-spacing:2px}
+.nav-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+.nav-status{
+  display:flex;align-items:center;gap:6px;
+  font-family:'IBM Plex Mono',monospace;font-size:.56rem;
+  color:var(--muted2);letter-spacing:1.5px;
+  padding:5px 11px;border-radius:20px;
+  border:1px solid var(--border2);
+  background:var(--surface);
+}
+.nav-status .dot{
+  width:6px;height:6px;border-radius:50%;background:var(--pass);
+  box-shadow:0 0 6px var(--pass);
+  animation:blink 2.5s ease-in-out infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.4}}
+.nav-btn{
+  padding:6px 13px;border-radius:8px;
+  font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:1.5px;
+  cursor:pointer;border:1px solid var(--border2);
+  background:var(--surface);color:var(--text2);
+  transition:all .15s;text-decoration:none;
+  display:flex;align-items:center;gap:5px;
+}
+.nav-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--blue-glow)}
+
+/* ── VENDOR TABS ─────────────────────────────────────────── */
+.vendor-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px}
+@media(max-width:580px){.vendor-tabs{grid-template-columns:1fr}}
+.vtab{
+  padding:16px 18px;border-radius:14px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  cursor:pointer;display:flex;align-items:center;gap:12px;
+  transition:all .2s;position:relative;overflow:hidden;
+  backdrop-filter:blur(8px);
+}
+.vtab::before{
+  content:'';position:absolute;inset:0;border-radius:14px;
+  background:var(--grad);opacity:0;transition:opacity .2s;
+}
+.vtab:hover{border-color:var(--border2);transform:translateY(-1px)}
+.vtab.active{border-color:rgba(91,127,255,0.4);background:rgba(91,127,255,0.08)}
+.vtab.active::before{opacity:0.04}
+[data-theme="dark"] .vtab.active::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:var(--grad);
+}
+.vtab-icon-wrap{
+  width:36px;height:36px;border-radius:9px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--surface3);border:1px solid var(--border);
+  font-size:16px;
+  transition:all .2s;
+}
+.vtab.active .vtab-icon-wrap{
+  background:rgba(91,127,255,0.12);border-color:rgba(91,127,255,0.25);
+}
+.vtab-info{flex:1;min-width:0}
+.vtab-name{font-size:.88rem;font-weight:600;color:var(--text);margin-bottom:2px}
+.vtab-sub{font-family:'IBM Plex Mono',monospace;font-size:.55rem;color:var(--muted2);letter-spacing:0.5px}
+.vtab-badge{
+  font-family:'IBM Plex Mono',monospace;font-size:.5rem;letter-spacing:1px;
+  padding:3px 8px;border-radius:20px;
+  border:1px solid var(--border);
+  background:var(--surface2);color:var(--muted2);
+  flex-shrink:0;
+}
+.vtab.active .vtab-badge{
+  background:rgba(91,127,255,0.12);border-color:rgba(91,127,255,0.3);color:var(--accent);
+}
+
+/* ── GLASS CARD ──────────────────────────────────────────── */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:26px;margin-bottom:16px;
+  position:relative;overflow:hidden;
+  backdrop-filter:blur(12px);
+  box-shadow:0 4px 24px var(--shadow),inset 0 1px 0 rgba(255,255,255,0.05);
+}
+[data-theme="dark"] .card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,var(--accent),var(--accent2),transparent 70%);
+  opacity:0.6;
+}
+
+/* ── SECTION LABEL ───────────────────────────────────────── */
+.slabel{
+  font-family:'IBM Plex Mono',monospace;font-size:.56rem;
+  letter-spacing:3px;color:var(--accent);text-transform:uppercase;
+  margin-bottom:20px;display:flex;align-items:center;gap:10px;
+}
+.slabel::before{
+  content:'';width:4px;height:4px;border-radius:50%;
+  background:var(--grad);box-shadow:0 0 8px var(--accent);flex-shrink:0;
+}
+.slabel::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── FORM ────────────────────────────────────────────────── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:620px){.form-grid{grid-template-columns:1fr}}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-label{
+  font-size:.6rem;font-family:'IBM Plex Mono',monospace;
+  color:var(--muted2);letter-spacing:2px;text-transform:uppercase;
+}
+.form-input{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:10px 14px;border-radius:9px;
+  font-family:'Inter',sans-serif;font-size:.88rem;
+  outline:none;transition:all .2s;
+}
+.form-input:focus{
+  border-color:rgba(91,127,255,0.5);
+  background:rgba(91,127,255,0.04);
+  box-shadow:0 0 0 3px rgba(91,127,255,0.1);
+}
+.form-input::placeholder{color:var(--muted)}
+.form-hint{font-family:'IBM Plex Mono',monospace;font-size:.58rem;color:var(--muted2);margin-top:2px}
+.form-note{
+  font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--muted2);
+  padding:11px 14px;
+  background:rgba(91,127,255,0.04);
+  border-radius:9px;
+  border:1px solid rgba(91,127,255,0.1);
+  line-height:1.7;margin:16px 0;
+  display:flex;align-items:flex-start;gap:8px;
+}
+.form-note::before{content:'⚠';flex-shrink:0;opacity:0.7}
+
+/* ── BUTTONS ─────────────────────────────────────────────── */
+.btn-row{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+.btn{
+  padding:10px 22px;border-radius:9px;
+  font-family:'Inter',sans-serif;font-weight:600;
+  font-size:.82rem;letter-spacing:0.3px;
+  cursor:pointer;border:none;transition:all .2s;
+  display:inline-flex;align-items:center;gap:7px;
+}
+.btn-test{
+  background:var(--surface3);border:1px solid var(--border2);color:var(--text2);
+}
+.btn-test:hover{border-color:var(--accent);color:var(--accent);background:var(--blue-glow)}
+.btn-analyze{
+  background:var(--grad);color:#fff;
+  box-shadow:0 4px 14px rgba(91,127,255,0.3);
+}
+.btn-analyze:hover:not(:disabled){
+  background:var(--grad-h);
+  transform:translateY(-1px);
+  box-shadow:0 6px 20px rgba(91,127,255,0.4);
+}
+.btn-analyze:disabled{opacity:.4;cursor:not-allowed}
+.btn-ghost{
+  background:var(--surface);border:1px solid var(--border2);color:var(--text2);
+}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-pdf{
+  background:linear-gradient(135deg,#e05500,#bb2200);color:#fff;
+  box-shadow:0 4px 12px rgba(200,80,0,0.25);
+}
+.btn-pdf:hover:not(:disabled){transform:translateY(-1px)}
+.btn-json{
+  background:var(--surface);border:1px solid rgba(91,127,255,0.35);
+  color:var(--accent);
+}
+.btn-json:hover{background:var(--blue-glow)}
+
+/* ── STATUS BOX ──────────────────────────────────────────── */
+.status-box{
+  padding:11px 15px;border-radius:9px;
+  font-family:'IBM Plex Mono',monospace;font-size:.72rem;
+  margin-top:14px;display:none;line-height:1.5;
+}
+.status-box.show{display:block}
+.status-box.ok{background:rgba(52,211,153,0.07);border:1px solid rgba(52,211,153,0.2);color:var(--pass)}
+.status-box.err{background:rgba(248,113,113,0.07);border:1px solid rgba(248,113,113,0.2);color:var(--fail)}
+.status-box.info{background:rgba(91,127,255,0.06);border:1px solid rgba(91,127,255,0.18);color:var(--accent)}
+
+/* ── LOADING ─────────────────────────────────────────────── */
+.loading{display:none;text-align:center;padding:60px 0}
+.spinner{
+  width:44px;height:44px;border-radius:50%;
+  border:2px solid var(--border);
+  border-top-color:var(--accent);border-right-color:var(--accent2);
+  animation:spin .8s linear infinite;margin:0 auto 16px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-lbl{
+  font-family:'IBM Plex Mono',monospace;font-size:.68rem;
+  color:var(--muted2);letter-spacing:2.5px;
+  animation:pulse 1.6s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:.35}50%{opacity:1}}
+
+/* ── RESULTS ─────────────────────────────────────────────── */
+#results{display:none}
+
+/* RISK HERO */
+.risk-hero{
+  background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:28px;margin-bottom:14px;
+  display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center;
+  position:relative;overflow:hidden;
+  backdrop-filter:blur(12px);
+  box-shadow:0 4px 24px var(--shadow);
+}
+[data-theme="dark"] .risk-hero::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:var(--rc,var(--grad));opacity:0.7;
+}
+@media(max-width:560px){.risk-hero{grid-template-columns:1fr;text-align:center}}
+
+/* SCORE RING */
+.score-ring{position:relative;width:114px;height:114px;flex-shrink:0}
+.score-ring svg{transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:var(--border2);stroke-width:7}
+.ring-val{fill:none;stroke-width:7;stroke-linecap:round;transition:stroke-dashoffset .9s cubic-bezier(.4,0,.2,1)}
+.score-over{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.score-num{font-size:2.1rem;font-weight:800;line-height:1}
+.score-lbl{font-family:'IBM Plex Mono',monospace;font-size:.44rem;letter-spacing:3px;color:var(--muted2);margin-top:3px}
+.risk-level{font-size:1.55rem;font-weight:800;letter-spacing:0.5px;line-height:1;margin-bottom:5px}
+.risk-sub{font-size:.72rem;color:var(--muted2);margin-bottom:14px;font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:0.5px}
+.stat-row{display:flex;gap:20px;flex-wrap:wrap}
+.stat .sv{font-size:1.5rem;font-weight:800;line-height:1}
+.stat .sl{font-family:'IBM Plex Mono',monospace;font-size:.54rem;color:var(--muted2);letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+.stat.pass .sv{color:var(--pass)}.stat.fail .sv{color:var(--fail)}
+.prog-wrap{height:3px;background:var(--border);border-radius:2px;margin-top:14px;max-width:340px;overflow:hidden}
+.prog-bar{height:100%;border-radius:2px;transition:width .9s cubic-bezier(.4,0,.2,1)}
+
+/* SEV GRID */
+.sev-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+@media(max-width:520px){.sev-grid{grid-template-columns:1fr 1fr}}
+.sev-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:14px;text-align:center;backdrop-filter:blur(8px);
+  transition:border-color .2s;
+}
+.sev-card .sl{font-family:'IBM Plex Mono',monospace;font-size:.52rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+.sev-card .sf{font-size:2rem;font-weight:800;line-height:1}
+.sev-card .st{font-size:.62rem;color:var(--muted2);margin-top:4px;font-family:'IBM Plex Mono',monospace}
+.sev-card.Critical{border-color:rgba(239,68,68,.2)}.sev-card.Critical .sl,.sev-card.Critical .sf{color:var(--crit)}
+.sev-card.High{border-color:rgba(248,113,113,.15)}.sev-card.High .sl,.sev-card.High .sf{color:var(--fail)}
+.sev-card.Medium{border-color:rgba(251,191,36,.15)}.sev-card.Medium .sl,.sev-card.Medium .sf{color:var(--warn)}
+.sev-card.Low{border-color:rgba(129,140,248,.15)}.sev-card.Low .sl,.sev-card.Low .sf{color:#a5b4fc}
+
+/* CHARTS */
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+@media(max-width:640px){.charts-row{grid-template-columns:1fr}}
+.chart-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  padding:18px;backdrop-filter:blur(8px);
+}
+.chart-title{
+  font-family:'IBM Plex Mono',monospace;font-size:.55rem;letter-spacing:2.5px;
+  color:var(--accent);text-transform:uppercase;margin-bottom:13px;
+  display:flex;align-items:center;gap:7px;
+}
+.chart-title::before{content:'';width:3px;height:3px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent)}
+.chart-wrap{position:relative;height:180px}
+.action-row{display:flex;gap:8px;justify-content:flex-end;margin-bottom:14px;flex-wrap:wrap}
+
+/* CHECKS CARD */
+.checks-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  overflow:hidden;margin-bottom:14px;
+  backdrop-filter:blur(8px);
+}
+.checks-head{
+  padding:14px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  background:var(--surface2);
+}
+.checks-head h3{
+  font-family:'IBM Plex Mono',monospace;font-size:.56rem;
+  letter-spacing:3px;text-transform:uppercase;color:var(--accent);flex:1;min-width:80px;
+}
+.filter-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.filter-label{font-family:'IBM Plex Mono',monospace;font-size:.58rem;color:var(--muted2);letter-spacing:1px}
+.filter-select{
+  background:var(--surface3);border:1px solid var(--border2);color:var(--text);
+  padding:5px 10px;border-radius:7px;
+  font-family:'IBM Plex Mono',monospace;font-size:.62rem;outline:none;cursor:pointer;
+}
+.filter-select:focus{border-color:var(--accent)}
+
+/* CHECK ITEMS */
+.check-item{
+  padding:12px 20px;border-bottom:1px solid var(--border3);
+  display:grid;grid-template-columns:52px 1fr 120px auto;
+  gap:12px;align-items:start;cursor:pointer;transition:background .12s;
+}
+.check-item:last-child{border-bottom:none}
+.check-item:hover{background:rgba(255,255,255,0.02)}
+.check-item.expanded{background:rgba(91,127,255,0.03)}
+.check-item.hidden{display:none}
+.check-id{font-family:'IBM Plex Mono',monospace;font-size:.58rem;color:var(--muted);padding-top:3px}
+.check-title{font-size:.83rem;font-weight:500;margin-bottom:3px;color:var(--text)}
+.check-cat{font-family:'IBM Plex Mono',monospace;font-size:.55rem;color:var(--muted2);letter-spacing:0.5px}
+.check-detail{
+  display:none;margin-top:11px;padding:12px 14px;
+  background:var(--surface2);border-radius:9px;border:1px solid var(--border);
+}
+.check-item.expanded .check-detail{display:block}
+.det-lbl{
+  font-family:'IBM Plex Mono',monospace;font-size:.53rem;letter-spacing:2px;
+  color:var(--muted);text-transform:uppercase;margin-bottom:3px;
+}
+.det-val{font-size:.77rem;color:var(--text2);line-height:1.55;margin-bottom:8px}
+.det-rec{
+  font-family:'IBM Plex Mono',monospace;font-size:.65rem;color:var(--accent);
+  background:rgba(91,127,255,0.05);padding:7px 11px;border-radius:7px;
+  border-left:2px solid var(--accent);
+}
+.check-cur{
+  font-family:'IBM Plex Mono',monospace;font-size:.65rem;color:var(--accent);
+  background:rgba(91,127,255,0.07);padding:3px 8px;border-radius:5px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  align-self:center;border:1px solid rgba(91,127,255,0.15);max-width:120px;
+}
+.check-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+
+/* BADGES */
+.sbadge{
+  font-family:'IBM Plex Mono',monospace;font-size:.54rem;
+  padding:2px 9px;border-radius:5px;font-weight:600;letter-spacing:1.5px;
+}
+.sbadge.PASS{background:rgba(52,211,153,.1);color:var(--pass);border:1px solid rgba(52,211,153,.2)}
+.sbadge.FAIL{background:rgba(248,113,113,.1);color:var(--fail);border:1px solid rgba(248,113,113,.2)}
+.sevbadge{font-family:'IBM Plex Mono',monospace;font-size:.52rem;padding:2px 7px;border-radius:4px;font-weight:600}
+.sevbadge.Critical{background:rgba(239,68,68,.1);color:var(--crit)}
+.sevbadge.High{background:rgba(248,113,113,.08);color:var(--fail)}
+.sevbadge.Medium{background:rgba(251,191,36,.08);color:var(--warn)}
+.sevbadge.Low{background:rgba(165,180,252,.08);color:#a5b4fc}
+
+/* RULES PANEL */
+.rules-head{background:rgba(248,113,113,.03)!important;border-bottom-color:rgba(248,113,113,.15)!important}
+.rules-head h3{color:var(--fail)!important}
+.rsummary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:14px 20px;border-bottom:1px solid var(--border)}
+@media(max-width:520px){.rsummary{grid-template-columns:1fr 1fr}}
+.rscard{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:11px;text-align:center}
+.rscard .rl{font-family:'IBM Plex Mono',monospace;font-size:.5rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}
+.rscard .rv{font-size:1.8rem;font-weight:800;line-height:1}
+.rscard.crit .rl,.rscard.crit .rv{color:var(--crit)}
+.rscard.high .rl,.rscard.high .rv{color:var(--fail)}
+.rscard.med .rl,.rscard.med .rv{color:var(--warn)}
+.rscard.low .rl,.rscard.low .rv{color:#a5b4fc}
+
+/* HISTORY SECTION */
+.history-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  overflow:hidden;margin-bottom:24px;backdrop-filter:blur(8px);
+}
+.history-head{
+  padding:14px 20px;border-bottom:1px solid var(--border);
+  background:var(--surface2);display:flex;align-items:center;gap:10px;
+}
+.history-head h3{
+  font-family:'IBM Plex Mono',monospace;font-size:.56rem;
+  letter-spacing:3px;text-transform:uppercase;color:var(--muted2);
+}
+.history-empty{
+  padding:40px;text-align:center;
+  font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--muted);letter-spacing:1px;
+}
+
+/* FOOTER */
+footer{
+  text-align:center;padding:24px 0;
+  border-top:1px solid var(--border);
+  font-family:'IBM Plex Mono',monospace;font-size:.56rem;
+  color:var(--muted);letter-spacing:1.5px;
+}
+footer a{color:var(--accent);text-decoration:none}
+footer a:hover{color:var(--accent2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ── NAV ─────────────────────────────────────────────────── -->
+<nav>
+  <div class="logo">🛡️</div>
+  <div class="nav-brand">
+    <div class="nav-title">Multi-Firewall <span>CIS</span> Analyzer</div>
+    <div class="nav-sub">VALIDAÇÃO VIA API · SONICWALL · FORTIGATE · PFSENSE</div>
+  </div>
+  <div class="nav-actions">
+    <div class="nav-status"><span class="dot"></span>PRONTO_PARA_ANÁLISE</div>
+    <a href="/admin" class="nav-btn">⚙ Admin</a>
+    <button class="nav-btn" onclick="toggleTheme()" id="themeBtn">🌙</button>
+  </div>
+</nav>
+
+<!-- ── VENDOR SELECTION ─────────────────────────────────────── -->
+<div class="vendor-tabs">
+  <div class="vtab active" id="vtab-sonicwall" onclick="selectVendor('sonicwall')">
+    <div class="vtab-icon-wrap">🔥</div>
+    <div class="vtab-info">
+      <div class="vtab-name">SonicWall</div>
+      <div class="vtab-sub">SonicOS 7.x REST API</div>
+    </div>
+    <span class="vtab-badge">HTTPS 443</span>
+  </div>
+  <div class="vtab" id="vtab-fortigate" onclick="selectVendor('fortigate')">
+    <div class="vtab-icon-wrap">🟠</div>
+    <div class="vtab-info">
+      <div class="vtab-name">FortiGate</div>
+      <div class="vtab-sub">FortiOS 7.x REST API</div>
+    </div>
+    <span class="vtab-badge">HTTPS 443</span>
+  </div>
+  <div class="vtab" id="vtab-pfsense" onclick="selectVendor('pfsense')">
+    <div class="vtab-icon-wrap">🔵</div>
+    <div class="vtab-info">
+      <div class="vtab-name">pfSense</div>
+      <div class="vtab-sub">API Plugin 2.7+</div>
+    </div>
+    <span class="vtab-badge">HTTPS 443</span>
+  </div>
+</div>
+
+<!-- ── CONNECTION FORM ──────────────────────────────────────── -->
+<div class="card">
+  <div class="slabel">conexão com o dispositivo</div>
+
+  <div class="form-grid">
+    <div class="form-group">
+      <label class="form-label">IP / Hostname *</label>
+      <input class="form-input" id="fHost" type="text" placeholder="192.168.1.1" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Porta HTTPS</label>
+      <input class="form-input" id="fPort" type="number" value="443" min="1" max="65535">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Usuário Admin *</label>
+      <input class="form-input" id="fUser" type="text" placeholder="admin" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Senha *</label>
+      <input class="form-input" id="fPass" type="password" placeholder="••••••••" autocomplete="new-password">
+    </div>
+  </div>
+
+  <!-- API Key (FortiGate / pfSense) -->
+  <div id="apikeyRow" style="display:none;margin-top:14px">
+    <div class="form-group">
+      <label class="form-label">API Key (opcional — substitui usuário/senha)</label>
+      <input class="form-input" id="fApiKey" type="password" placeholder="Token da API" autocomplete="off">
+      <span class="form-hint" id="apikeyHint"></span>
+    </div>
+  </div>
+
+  <div class="form-group" style="margin-top:14px">
+    <label class="form-label">Nome da Empresa (relatório)</label>
+    <input class="form-input" id="fCompany" type="text" placeholder="Ex: Acme Corp">
+  </div>
+
+  <div class="form-note" id="vendorNote">
+    As credenciais são usadas apenas para autenticar na API REST e <strong>não são armazenadas</strong>.
+    Certifique-se que a API está habilitada no dispositivo.
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-test" onclick="testConn()">⚡ Testar Conexão</button>
+    <button class="btn btn-analyze" id="analyzeBtn" onclick="runAnalysis()">▶ Executar Análise CIS</button>
+  </div>
+  <div class="status-box" id="statusBox"></div>
+</div>
+
+<!-- ── LOADING ───────────────────────────────────────────────── -->
+<div class="loading" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-lbl" id="loadingLbl">CONECTANDO AO DISPOSITIVO...</div>
+</div>
+
+<!-- ── RESULTS ───────────────────────────────────────────────── -->
+<div id="results">
+  <div class="risk-hero" id="riskHero">
+    <div class="score-ring">
+      <svg width="114" height="114" viewBox="0 0 114 114">
+        <circle class="ring-bg" cx="57" cy="57" r="49"/>
+        <circle class="ring-val" id="ringVal" cx="57" cy="57" r="49" stroke-dasharray="307.9" stroke-dashoffset="307.9"/>
+      </svg>
+      <div class="score-over">
+        <div class="score-num" id="scoreNum">--</div>
+        <div class="score-lbl">SCORE</div>
+      </div>
+    </div>
+    <div>
+      <div class="risk-level" id="riskLevel">--</div>
+      <div class="risk-sub" id="riskSub">--</div>
+      <div class="stat-row">
+        <div class="stat"><div class="sv" id="stTotal">--</div><div class="sl">Total</div></div>
+        <div class="stat pass"><div class="sv" id="stPass">--</div><div class="sl">Pass</div></div>
+        <div class="stat fail"><div class="sv" id="stFail">--</div><div class="sl">Fail</div></div>
+      </div>
+      <div class="prog-wrap"><div class="prog-bar" id="progBar"></div></div>
+    </div>
+  </div>
+
+  <div class="sev-grid" id="sevGrid"></div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">score por categoria</div>
+      <div class="chart-wrap"><canvas id="radarChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">falhas por severidade</div>
+      <div class="chart-wrap"><canvas id="doughnutChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="action-row">
+    <button class="btn btn-json" onclick="downloadJSON()">⬇ JSON</button>
+    <button class="btn btn-pdf"  onclick="exportPDF()">⬇ PDF</button>
+    <button class="btn btn-ghost" onclick="newAnalysis()">↩ Nova Análise</button>
+  </div>
+
+  <!-- CIS CHECKS -->
+  <div class="checks-card" id="cisCard">
+    <div class="checks-head">
+      <h3 id="cisTitle">controles CIS</h3>
+      <div class="filter-group">
+        <span class="filter-label">Status:</span>
+        <select class="filter-select" id="fStatus" onchange="filterChecks()">
+          <option value="all">Todos</option><option value="FAIL">FAIL</option><option value="PASS">PASS</option>
+        </select>
+        <span class="filter-label">Severidade:</span>
+        <select class="filter-select" id="fSev" onchange="filterChecks()">
+          <option value="all">Todas</option>
+          <option value="Critical">Critical</option><option value="High">High</option>
+          <option value="Medium">Medium</option><option value="Low">Low</option>
+        </select>
+      </div>
+    </div>
+    <div id="cisList"></div>
+  </div>
+
+  <!-- ACCESS RULES -->
+  <div class="checks-card" id="rulesCard" style="display:none">
+    <div class="checks-head rules-head">
+      <h3 id="rulesTitle">auditoria de regras de acesso</h3>
+      <div class="filter-group">
+        <select class="filter-select" id="fRuleSev" onchange="filterRules()">
+          <option value="all">Todas severidades</option>
+          <option value="Critical">Critical</option><option value="High">High</option>
+          <option value="Medium">Medium</option><option value="Low">Low</option>
+        </select>
+      </div>
+    </div>
+    <div class="rsummary" id="rSummary"></div>
+    <div id="rulesList"></div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+<footer>CIS Analyzer v4 · API-only · SonicWall · FortiGate · pfSense · <a href="/admin">Admin</a></footer>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────
+let currentVendor='sonicwall', currentData=null, radarChart=null, doughnutChart=null;
+
+const VENDOR_CONFIG = {
+  sonicwall:{
+    note:'Certifique-se que a API está habilitada: <b>Manage &gt; API &gt; Enable SonicOS API = on</b>',
+    showApiKey:false, apiKeyHint:'',
+  },
+  fortigate:{
+    note:'Crie uma API Key em FortiGate: <b>System &gt; Administrators &gt; REST API Admin</b>. Ou use usuário/senha.',
+    showApiKey:true, apiKeyHint:'FortiOS: System > Administrators > REST API Admin > Create New',
+  },
+  pfsense:{
+    note:'Instale o plugin <b>pfSense-pkg-API</b> e habilite a API em System > API.',
+    showApiKey:true, apiKeyHint:'pfSense: System > API > Generate API Key',
+  },
+};
+
+// ── THEME ──────────────────────────────────────────────────
+(function(){
+  const t=localStorage.getItem('theme')||'dark';
+  document.documentElement.setAttribute('data-theme',t);
+  document.addEventListener('DOMContentLoaded',()=>{
+    const b=document.getElementById('themeBtn'); if(b) b.textContent=t==='dark'?'🌙':'☀️';
+  });
+})();
+function toggleTheme(){
+  const d=document.documentElement.getAttribute('data-theme')==='dark';
+  document.documentElement.setAttribute('data-theme',d?'light':'dark');
+  document.getElementById('themeBtn').textContent=d?'☀️':'🌙';
+  localStorage.setItem('theme',d?'light':'dark');
+  if(currentData) renderCharts(currentData.risk);
+}
+
+// ── VENDOR ────────────────────────────────────────────────
+function selectVendor(v){
+  currentVendor=v;
+  document.querySelectorAll('.vtab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('vtab-'+v)?.classList.add('active');
+  const cfg=VENDOR_CONFIG[v]||{};
+  document.getElementById('vendorNote').innerHTML=
+    'As credenciais são usadas apenas para autenticar na API REST e <strong>não são armazenadas</strong>. '+cfg.note;
+  const akRow=document.getElementById('apikeyRow');
+  akRow.style.display=cfg.showApiKey?'block':'none';
+  if(cfg.showApiKey) document.getElementById('apikeyHint').textContent=cfg.apiKeyHint||'';
+  setStatus('','');
+}
+
+// ── STATUS ────────────────────────────────────────────────
+function setStatus(msg,type){
+  const el=document.getElementById('statusBox');
+  if(!msg){el.className='status-box';return;}
+  el.className=`status-box show ${type}`;
+  el.innerHTML=msg;
+}
+
+function getFields(){
+  return {
+    vendor:   currentVendor,
+    host:     document.getElementById('fHost').value.trim(),
+    port:     parseInt(document.getElementById('fPort').value)||443,
+    username: document.getElementById('fUser').value.trim(),
+    password: document.getElementById('fPass').value,
+    api_key:  document.getElementById('fApiKey')?.value.trim()||'',
+    company:  document.getElementById('fCompany').value.trim(),
+  };
+}
+
+// ── TEST ──────────────────────────────────────────────────
+async function testConn(){
+  const f=getFields();
+  if(!f.host){setStatus('Informe o IP/hostname do dispositivo.','err');return;}
+  if(!f.username&&!f.api_key){setStatus('Informe usuário/senha ou API Key.','err');return;}
+  setStatus('⟳ Testando conexão...','info');
+  try{
+    const r=await fetch('/api/test',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(f)});
+    const d=await r.json();
+    setStatus(d.ok?'✓ '+d.message:'✗ '+(d.error||'Falha na conexão'),d.ok?'ok':'err');
+  }catch(e){setStatus('Erro: '+e.message,'err');}
+}
+
+// ── ANALYZE ───────────────────────────────────────────────
+async function runAnalysis(){
+  const f=getFields();
+  if(!f.host){setStatus('Informe o IP/hostname do dispositivo.','err');return;}
+  if(!f.username&&!f.api_key){setStatus('Informe usuário/senha ou API Key.','err');return;}
+
+  document.getElementById('analyzeBtn').disabled=true;
+  document.getElementById('results').style.display='none';
+  document.getElementById('loading').style.display='block';
+  setStatus('','');
+
+  const msgs=['CONECTANDO AO DISPOSITIVO...','AUTENTICANDO...','COLETANDO CONFIGURAÇÕES...','EXECUTANDO CONTROLES CIS...','CALCULANDO SCORE DE RISCO...'];
+  let mi=0;
+  const iv=setInterval(()=>document.getElementById('loadingLbl').textContent=msgs[Math.min(mi++,msgs.length-1)],1800);
+
+  try{
+    const r=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(f)});
+    clearInterval(iv);
+    document.getElementById('loading').style.display='none';
+    if(!r.ok){
+      const e=await r.json();
+      document.getElementById('analyzeBtn').disabled=false;
+      setStatus('✗ '+(e.error||'Erro desconhecido'),'err');
+      return;
+    }
+    currentData=await r.json();
+    renderResults(currentData);
+  }catch(e){
+    clearInterval(iv);
+    document.getElementById('loading').style.display='none';
+    document.getElementById('analyzeBtn').disabled=false;
+    setStatus('Erro: '+e.message,'err');
+  }
+}
+
+function newAnalysis(){
+  document.getElementById('results').style.display='none';
+  document.getElementById('analyzeBtn').disabled=false;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── RENDER ────────────────────────────────────────────────
+const LVLS={BAIXO:'RISCO BAIXO',MÉDIO:'RISCO MÉDIO',ALTO:'RISCO ALTO',CRÍTICO:'RISCO CRÍTICO'};
+
+function renderResults(data){
+  const r=data.risk, rc=r.risk_color||'#6080ff';
+  document.getElementById('riskHero').style.setProperty('--rc',rc);
+  const ring=document.getElementById('ringVal');
+  ring.style.stroke=rc;
+  setTimeout(()=>ring.style.strokeDashoffset=307.9-(r.score/100)*307.9,80);
+  document.getElementById('scoreNum').textContent=r.score;
+  document.getElementById('scoreNum').style.color=rc;
+  document.getElementById('riskLevel').textContent=LVLS[r.risk_level]||r.risk_level;
+  document.getElementById('riskLevel').style.color=rc;
+  document.getElementById('riskSub').textContent=
+    `${data.company} · ${data.vendor_name} · ${data.version_label} · ${new Date(data.timestamp).toLocaleString('pt-BR')}`;
+  document.getElementById('stTotal').textContent=r.total_checks;
+  document.getElementById('stPass').textContent=r.passed;
+  document.getElementById('stFail').textContent=r.failed;
+  document.getElementById('progBar').style.width=r.score+'%';
+  document.getElementById('progBar').style.background=rc;
+
+  document.getElementById('sevGrid').innerHTML=['Critical','High','Medium','Low'].map(s=>{
+    const sv=r.by_severity[s]||{};
+    return`<div class="sev-card ${s}"><div class="sl">${s}</div><div class="sf">${sv.fail||0}</div><div class="st">de ${sv.total||0}</div></div>`;
+  }).join('');
+
+  renderCharts(r);
+
+  const cis=data.cis_checks||data.checks?.filter(c=>!c.cid.startsWith('FWR'))||[];
+  document.getElementById('cisTitle').textContent=`controles CIS — ${cis.length} verificações`;
+  document.getElementById('fStatus').value='all';
+  document.getElementById('fSev').value='all';
+  document.getElementById('cisList').innerHTML=renderCheckList(cis);
+
+  const rules=data.rule_checks||data.checks?.filter(c=>c.cid.startsWith('FWR'))||[];
+  const rulesCard=document.getElementById('rulesCard');
+  if(rules.length>0){
+    const fails=rules.filter(c=>c.status==='FAIL');
+    const bySev={Critical:0,High:0,Medium:0,Low:0};
+    fails.forEach(c=>{if(bySev[c.severity]!==undefined)bySev[c.severity]++;});
+    document.getElementById('rulesTitle').textContent=`auditoria de regras de acesso — ${fails.length} problemas`;
+    document.getElementById('rSummary').innerHTML=
+      `<div class="rscard crit"><div class="rl">Critical</div><div class="rv">${bySev.Critical}</div></div>`+
+      `<div class="rscard high"><div class="rl">High</div><div class="rv">${bySev.High}</div></div>`+
+      `<div class="rscard med"><div class="rl">Medium</div><div class="rv">${bySev.Medium}</div></div>`+
+      `<div class="rscard low"><div class="rl">Low</div><div class="rv">${bySev.Low}</div></div>`;
+    document.getElementById('rulesList').innerHTML=renderCheckList(fails);
+    document.getElementById('fRuleSev').value='all';
+    rulesCard.style.display='block';
+  } else {
+    rulesCard.style.display='none';
+  }
+
+  document.getElementById('results').style.display='block';
+  setTimeout(()=>document.getElementById('results').scrollIntoView({behavior:'smooth'}),80);
+}
+
+function renderCheckList(checks){
+  const sevOrder={Critical:0,High:1,Medium:2,Low:3};
+  return [...checks].sort((a,b)=>{
+    if(a.status!==b.status)return a.status==='FAIL'?-1:1;
+    return sevOrder[a.severity]-sevOrder[b.severity];
+  }).map(c=>`
+    <div class="check-item" data-status="${c.status}" data-sev="${c.severity}" onclick="this.classList.toggle('expanded')">
+      <div class="check-id">${c.cid}</div>
+      <div>
+        <div class="check-title">${c.title}</div>
+        <div class="check-cat">${c.category}</div>
+        <div class="check-detail">
+          <div class="det-lbl">Descrição</div><div class="det-val">${c.description}</div>
+          <div class="det-lbl">Resultado</div><div class="det-val">${c.detail||'—'}</div>
+          <div class="det-lbl">Recomendação</div><div class="det-rec">${c.recommendation}</div>
+        </div>
+      </div>
+      <div class="check-cur" title="${c.current_value||''}">${c.current_value||'—'}</div>
+      <div class="check-right">
+        <span class="sbadge ${c.status}">${c.status}</span>
+        <span class="sevbadge ${c.severity}">${c.severity}</span>
+      </div>
+    </div>`).join('');
+}
+
+function filterChecks(){
+  const st=document.getElementById('fStatus').value;
+  const sv=document.getElementById('fSev').value;
+  document.querySelectorAll('#cisList .check-item').forEach(i=>{
+    i.classList.toggle('hidden',(st!=='all'&&i.dataset.status!==st)||(sv!=='all'&&i.dataset.sev!==sv));
+  });
+}
+function filterRules(){
+  const sv=document.getElementById('fRuleSev').value;
+  document.querySelectorAll('#rulesList .check-item').forEach(i=>{
+    i.classList.toggle('hidden',sv!=='all'&&i.dataset.sev!==sv);
+  });
+}
+
+// ── CHARTS ────────────────────────────────────────────────
+function renderCharts(risk){
+  if(radarChart)radarChart.destroy();
+  if(doughnutChart)doughnutChart.destroy();
+  const dk=document.documentElement.getAttribute('data-theme')==='dark';
+  const gc=dk?'rgba(255,255,255,.05)':'rgba(0,0,0,.07)';
+  const lc=dk?'#5470a0':'#64748b';
+  const cats=Object.keys(risk.by_category||{});
+  if(cats.length){
+    const scores=cats.map(c=>risk.by_category[c].score);
+    radarChart=new Chart(document.getElementById('radarChart').getContext('2d'),{type:'radar',
+      data:{labels:cats.map(c=>c.length>14?c.slice(0,13)+'…':c),
+        datasets:[{data:scores,backgroundColor:'rgba(91,127,255,.1)',borderColor:'#6080ff',
+          borderWidth:2,pointBackgroundColor:scores.map(s=>s>=85?'#34d399':s>=65?'#fbbf24':'#f87171'),
+          pointRadius:4}]},
+      options:{responsive:true,maintainAspectRatio:false,
+        scales:{r:{min:0,max:100,grid:{color:gc},angleLines:{color:gc},
+          pointLabels:{color:lc,font:{size:9,family:'IBM Plex Mono'}},
+          ticks:{color:lc,backdropColor:'transparent',stepSize:25,font:{size:7}}}},
+        plugins:{legend:{display:false}}}});
+  }
+  const fails=['Critical','High','Medium','Low']
+    .map(s=>({s,v:(risk.by_severity[s]||{}).fail||0})).filter(x=>x.v>0);
+  const sc={Critical:'#ef4444',High:'#f87171',Medium:'#fbbf24',Low:'#a5b4fc'};
+  if(fails.length){
+    doughnutChart=new Chart(document.getElementById('doughnutChart').getContext('2d'),{type:'doughnut',
+      data:{labels:fails.map(x=>x.s),
+        datasets:[{data:fails.map(x=>x.v),backgroundColor:fails.map(x=>sc[x.s]),
+          borderColor:dk?'#0c1120':'#fff',borderWidth:3}]},
+      options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
+        plugins:{legend:{position:'right',labels:{color:lc,font:{size:10,family:'IBM Plex Mono'},boxWidth:12,padding:10}},
+          tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed} falha(s)`}}}}});
+  }
+}
+
+// ── EXPORT ────────────────────────────────────────────────
+function downloadJSON(){
+  if(!currentData)return;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(currentData,null,2)],{type:'application/json'}));
+  a.download=`cis_${currentVendor}_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+async function exportPDF(){
+  if(!currentData)return;
+  try{
+    const r=await fetch('/api/pdf',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(currentData)});
+    if(!r.ok)throw new Error();
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(await r.blob());
+    a.download=`CIS_${currentVendor.toUpperCase()}_${new Date().toISOString().slice(0,10)}.pdf`;
+    a.click();
+  }catch{alert('Erro ao gerar PDF.');}
+}
+
+// ── INIT ──────────────────────────────────────────────────
+selectVendor('sonicwall');
+</script>
+</body>
+</html>
